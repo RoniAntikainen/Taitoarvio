@@ -49,6 +49,12 @@ class $AssessmentsTable extends Assessments
   late final GeneratedColumn<String> tags = GeneratedColumn<String>(
       'tags', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _scaleJsonMeta =
+      const VerificationMeta('scaleJson');
+  @override
+  late final GeneratedColumn<String> scaleJson = GeneratedColumn<String>(
+      'scale_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _summaryNoteMeta =
       const VerificationMeta('summaryNote');
   @override
@@ -73,6 +79,12 @@ class $AssessmentsTable extends Assessments
   late final GeneratedColumn<String> importFingerprint =
       GeneratedColumn<String>('import_fingerprint', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _folderKeyMeta =
+      const VerificationMeta('folderKey');
+  @override
+  late final GeneratedColumn<String> folderKey = GeneratedColumn<String>(
+      'folder_key', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -82,10 +94,12 @@ class $AssessmentsTable extends Assessments
         evaluatorName,
         subjectName,
         tags,
+        scaleJson,
         summaryNote,
         createdAt,
         updatedAt,
-        importFingerprint
+        importFingerprint,
+        folderKey
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -138,6 +152,10 @@ class $AssessmentsTable extends Assessments
       context.handle(
           _tagsMeta, tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta));
     }
+    if (data.containsKey('scale_json')) {
+      context.handle(_scaleJsonMeta,
+          scaleJson.isAcceptableOrUnknown(data['scale_json']!, _scaleJsonMeta));
+    }
     if (data.containsKey('summary_note')) {
       context.handle(
           _summaryNoteMeta,
@@ -162,11 +180,19 @@ class $AssessmentsTable extends Assessments
           importFingerprint.isAcceptableOrUnknown(
               data['import_fingerprint']!, _importFingerprintMeta));
     }
+    if (data.containsKey('folder_key')) {
+      context.handle(_folderKeyMeta,
+          folderKey.isAcceptableOrUnknown(data['folder_key']!, _folderKeyMeta));
+    }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {importFingerprint},
+      ];
   @override
   Assessment map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -185,6 +211,8 @@ class $AssessmentsTable extends Assessments
           .read(DriftSqlType.string, data['${effectivePrefix}subject_name']),
       tags: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}tags']),
+      scaleJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}scale_json']),
       summaryNote: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}summary_note']),
       createdAt: attachedDatabase.typeMapping
@@ -193,6 +221,8 @@ class $AssessmentsTable extends Assessments
           .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
       importFingerprint: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}import_fingerprint']),
+      folderKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}folder_key']),
     );
   }
 
@@ -210,10 +240,12 @@ class Assessment extends DataClass implements Insertable<Assessment> {
   final String? evaluatorName;
   final String? subjectName;
   final String? tags;
+  final String? scaleJson;
   final String? summaryNote;
   final int createdAt;
   final int updatedAt;
   final String? importFingerprint;
+  final String? folderKey;
   const Assessment(
       {required this.id,
       required this.rubricId,
@@ -222,10 +254,12 @@ class Assessment extends DataClass implements Insertable<Assessment> {
       this.evaluatorName,
       this.subjectName,
       this.tags,
+      this.scaleJson,
       this.summaryNote,
       required this.createdAt,
       required this.updatedAt,
-      this.importFingerprint});
+      this.importFingerprint,
+      this.folderKey});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -244,6 +278,9 @@ class Assessment extends DataClass implements Insertable<Assessment> {
     if (!nullToAbsent || tags != null) {
       map['tags'] = Variable<String>(tags);
     }
+    if (!nullToAbsent || scaleJson != null) {
+      map['scale_json'] = Variable<String>(scaleJson);
+    }
     if (!nullToAbsent || summaryNote != null) {
       map['summary_note'] = Variable<String>(summaryNote);
     }
@@ -251,6 +288,9 @@ class Assessment extends DataClass implements Insertable<Assessment> {
     map['updated_at'] = Variable<int>(updatedAt);
     if (!nullToAbsent || importFingerprint != null) {
       map['import_fingerprint'] = Variable<String>(importFingerprint);
+    }
+    if (!nullToAbsent || folderKey != null) {
+      map['folder_key'] = Variable<String>(folderKey);
     }
     return map;
   }
@@ -270,6 +310,9 @@ class Assessment extends DataClass implements Insertable<Assessment> {
           ? const Value.absent()
           : Value(subjectName),
       tags: tags == null && nullToAbsent ? const Value.absent() : Value(tags),
+      scaleJson: scaleJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scaleJson),
       summaryNote: summaryNote == null && nullToAbsent
           ? const Value.absent()
           : Value(summaryNote),
@@ -278,6 +321,9 @@ class Assessment extends DataClass implements Insertable<Assessment> {
       importFingerprint: importFingerprint == null && nullToAbsent
           ? const Value.absent()
           : Value(importFingerprint),
+      folderKey: folderKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(folderKey),
     );
   }
 
@@ -292,11 +338,13 @@ class Assessment extends DataClass implements Insertable<Assessment> {
       evaluatorName: serializer.fromJson<String?>(json['evaluatorName']),
       subjectName: serializer.fromJson<String?>(json['subjectName']),
       tags: serializer.fromJson<String?>(json['tags']),
+      scaleJson: serializer.fromJson<String?>(json['scaleJson']),
       summaryNote: serializer.fromJson<String?>(json['summaryNote']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
       importFingerprint:
           serializer.fromJson<String?>(json['importFingerprint']),
+      folderKey: serializer.fromJson<String?>(json['folderKey']),
     );
   }
   @override
@@ -310,10 +358,12 @@ class Assessment extends DataClass implements Insertable<Assessment> {
       'evaluatorName': serializer.toJson<String?>(evaluatorName),
       'subjectName': serializer.toJson<String?>(subjectName),
       'tags': serializer.toJson<String?>(tags),
+      'scaleJson': serializer.toJson<String?>(scaleJson),
       'summaryNote': serializer.toJson<String?>(summaryNote),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
       'importFingerprint': serializer.toJson<String?>(importFingerprint),
+      'folderKey': serializer.toJson<String?>(folderKey),
     };
   }
 
@@ -325,10 +375,12 @@ class Assessment extends DataClass implements Insertable<Assessment> {
           Value<String?> evaluatorName = const Value.absent(),
           Value<String?> subjectName = const Value.absent(),
           Value<String?> tags = const Value.absent(),
+          Value<String?> scaleJson = const Value.absent(),
           Value<String?> summaryNote = const Value.absent(),
           int? createdAt,
           int? updatedAt,
-          Value<String?> importFingerprint = const Value.absent()}) =>
+          Value<String?> importFingerprint = const Value.absent(),
+          Value<String?> folderKey = const Value.absent()}) =>
       Assessment(
         id: id ?? this.id,
         rubricId: rubricId ?? this.rubricId,
@@ -338,12 +390,14 @@ class Assessment extends DataClass implements Insertable<Assessment> {
             evaluatorName.present ? evaluatorName.value : this.evaluatorName,
         subjectName: subjectName.present ? subjectName.value : this.subjectName,
         tags: tags.present ? tags.value : this.tags,
+        scaleJson: scaleJson.present ? scaleJson.value : this.scaleJson,
         summaryNote: summaryNote.present ? summaryNote.value : this.summaryNote,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         importFingerprint: importFingerprint.present
             ? importFingerprint.value
             : this.importFingerprint,
+        folderKey: folderKey.present ? folderKey.value : this.folderKey,
       );
   Assessment copyWithCompanion(AssessmentsCompanion data) {
     return Assessment(
@@ -360,6 +414,7 @@ class Assessment extends DataClass implements Insertable<Assessment> {
       subjectName:
           data.subjectName.present ? data.subjectName.value : this.subjectName,
       tags: data.tags.present ? data.tags.value : this.tags,
+      scaleJson: data.scaleJson.present ? data.scaleJson.value : this.scaleJson,
       summaryNote:
           data.summaryNote.present ? data.summaryNote.value : this.summaryNote,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -367,6 +422,7 @@ class Assessment extends DataClass implements Insertable<Assessment> {
       importFingerprint: data.importFingerprint.present
           ? data.importFingerprint.value
           : this.importFingerprint,
+      folderKey: data.folderKey.present ? data.folderKey.value : this.folderKey,
     );
   }
 
@@ -380,10 +436,12 @@ class Assessment extends DataClass implements Insertable<Assessment> {
           ..write('evaluatorName: $evaluatorName, ')
           ..write('subjectName: $subjectName, ')
           ..write('tags: $tags, ')
+          ..write('scaleJson: $scaleJson, ')
           ..write('summaryNote: $summaryNote, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('importFingerprint: $importFingerprint')
+          ..write('importFingerprint: $importFingerprint, ')
+          ..write('folderKey: $folderKey')
           ..write(')'))
         .toString();
   }
@@ -397,10 +455,12 @@ class Assessment extends DataClass implements Insertable<Assessment> {
       evaluatorName,
       subjectName,
       tags,
+      scaleJson,
       summaryNote,
       createdAt,
       updatedAt,
-      importFingerprint);
+      importFingerprint,
+      folderKey);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -412,10 +472,12 @@ class Assessment extends DataClass implements Insertable<Assessment> {
           other.evaluatorName == this.evaluatorName &&
           other.subjectName == this.subjectName &&
           other.tags == this.tags &&
+          other.scaleJson == this.scaleJson &&
           other.summaryNote == this.summaryNote &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.importFingerprint == this.importFingerprint);
+          other.importFingerprint == this.importFingerprint &&
+          other.folderKey == this.folderKey);
 }
 
 class AssessmentsCompanion extends UpdateCompanion<Assessment> {
@@ -426,10 +488,12 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
   final Value<String?> evaluatorName;
   final Value<String?> subjectName;
   final Value<String?> tags;
+  final Value<String?> scaleJson;
   final Value<String?> summaryNote;
   final Value<int> createdAt;
   final Value<int> updatedAt;
   final Value<String?> importFingerprint;
+  final Value<String?> folderKey;
   final Value<int> rowid;
   const AssessmentsCompanion({
     this.id = const Value.absent(),
@@ -439,10 +503,12 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
     this.evaluatorName = const Value.absent(),
     this.subjectName = const Value.absent(),
     this.tags = const Value.absent(),
+    this.scaleJson = const Value.absent(),
     this.summaryNote = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.importFingerprint = const Value.absent(),
+    this.folderKey = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AssessmentsCompanion.insert({
@@ -453,10 +519,12 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
     this.evaluatorName = const Value.absent(),
     this.subjectName = const Value.absent(),
     this.tags = const Value.absent(),
+    this.scaleJson = const Value.absent(),
     this.summaryNote = const Value.absent(),
     required int createdAt,
     required int updatedAt,
     this.importFingerprint = const Value.absent(),
+    this.folderKey = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         rubricId = Value(rubricId),
@@ -471,10 +539,12 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
     Expression<String>? evaluatorName,
     Expression<String>? subjectName,
     Expression<String>? tags,
+    Expression<String>? scaleJson,
     Expression<String>? summaryNote,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
     Expression<String>? importFingerprint,
+    Expression<String>? folderKey,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -485,10 +555,12 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
       if (evaluatorName != null) 'evaluator_name': evaluatorName,
       if (subjectName != null) 'subject_name': subjectName,
       if (tags != null) 'tags': tags,
+      if (scaleJson != null) 'scale_json': scaleJson,
       if (summaryNote != null) 'summary_note': summaryNote,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (importFingerprint != null) 'import_fingerprint': importFingerprint,
+      if (folderKey != null) 'folder_key': folderKey,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -501,10 +573,12 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
       Value<String?>? evaluatorName,
       Value<String?>? subjectName,
       Value<String?>? tags,
+      Value<String?>? scaleJson,
       Value<String?>? summaryNote,
       Value<int>? createdAt,
       Value<int>? updatedAt,
       Value<String?>? importFingerprint,
+      Value<String?>? folderKey,
       Value<int>? rowid}) {
     return AssessmentsCompanion(
       id: id ?? this.id,
@@ -514,10 +588,12 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
       evaluatorName: evaluatorName ?? this.evaluatorName,
       subjectName: subjectName ?? this.subjectName,
       tags: tags ?? this.tags,
+      scaleJson: scaleJson ?? this.scaleJson,
       summaryNote: summaryNote ?? this.summaryNote,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       importFingerprint: importFingerprint ?? this.importFingerprint,
+      folderKey: folderKey ?? this.folderKey,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -546,6 +622,9 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
     if (tags.present) {
       map['tags'] = Variable<String>(tags.value);
     }
+    if (scaleJson.present) {
+      map['scale_json'] = Variable<String>(scaleJson.value);
+    }
     if (summaryNote.present) {
       map['summary_note'] = Variable<String>(summaryNote.value);
     }
@@ -557,6 +636,9 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
     }
     if (importFingerprint.present) {
       map['import_fingerprint'] = Variable<String>(importFingerprint.value);
+    }
+    if (folderKey.present) {
+      map['folder_key'] = Variable<String>(folderKey.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -574,10 +656,12 @@ class AssessmentsCompanion extends UpdateCompanion<Assessment> {
           ..write('evaluatorName: $evaluatorName, ')
           ..write('subjectName: $subjectName, ')
           ..write('tags: $tags, ')
+          ..write('scaleJson: $scaleJson, ')
           ..write('summaryNote: $summaryNote, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('importFingerprint: $importFingerprint, ')
+          ..write('folderKey: $folderKey, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1307,10 +1391,12 @@ typedef $$AssessmentsTableCreateCompanionBuilder = AssessmentsCompanion
   Value<String?> evaluatorName,
   Value<String?> subjectName,
   Value<String?> tags,
+  Value<String?> scaleJson,
   Value<String?> summaryNote,
   required int createdAt,
   required int updatedAt,
   Value<String?> importFingerprint,
+  Value<String?> folderKey,
   Value<int> rowid,
 });
 typedef $$AssessmentsTableUpdateCompanionBuilder = AssessmentsCompanion
@@ -1322,10 +1408,12 @@ typedef $$AssessmentsTableUpdateCompanionBuilder = AssessmentsCompanion
   Value<String?> evaluatorName,
   Value<String?> subjectName,
   Value<String?> tags,
+  Value<String?> scaleJson,
   Value<String?> summaryNote,
   Value<int> createdAt,
   Value<int> updatedAt,
   Value<String?> importFingerprint,
+  Value<String?> folderKey,
   Value<int> rowid,
 });
 
@@ -1360,6 +1448,9 @@ class $$AssessmentsTableFilterComposer
   ColumnFilters<String> get tags => $composableBuilder(
       column: $table.tags, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get scaleJson => $composableBuilder(
+      column: $table.scaleJson, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get summaryNote => $composableBuilder(
       column: $table.summaryNote, builder: (column) => ColumnFilters(column));
 
@@ -1372,6 +1463,9 @@ class $$AssessmentsTableFilterComposer
   ColumnFilters<String> get importFingerprint => $composableBuilder(
       column: $table.importFingerprint,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get folderKey => $composableBuilder(
+      column: $table.folderKey, builder: (column) => ColumnFilters(column));
 }
 
 class $$AssessmentsTableOrderingComposer
@@ -1406,6 +1500,9 @@ class $$AssessmentsTableOrderingComposer
   ColumnOrderings<String> get tags => $composableBuilder(
       column: $table.tags, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get scaleJson => $composableBuilder(
+      column: $table.scaleJson, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get summaryNote => $composableBuilder(
       column: $table.summaryNote, builder: (column) => ColumnOrderings(column));
 
@@ -1418,6 +1515,9 @@ class $$AssessmentsTableOrderingComposer
   ColumnOrderings<String> get importFingerprint => $composableBuilder(
       column: $table.importFingerprint,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get folderKey => $composableBuilder(
+      column: $table.folderKey, builder: (column) => ColumnOrderings(column));
 }
 
 class $$AssessmentsTableAnnotationComposer
@@ -1450,6 +1550,9 @@ class $$AssessmentsTableAnnotationComposer
   GeneratedColumn<String> get tags =>
       $composableBuilder(column: $table.tags, builder: (column) => column);
 
+  GeneratedColumn<String> get scaleJson =>
+      $composableBuilder(column: $table.scaleJson, builder: (column) => column);
+
   GeneratedColumn<String> get summaryNote => $composableBuilder(
       column: $table.summaryNote, builder: (column) => column);
 
@@ -1461,6 +1564,9 @@ class $$AssessmentsTableAnnotationComposer
 
   GeneratedColumn<String> get importFingerprint => $composableBuilder(
       column: $table.importFingerprint, builder: (column) => column);
+
+  GeneratedColumn<String> get folderKey =>
+      $composableBuilder(column: $table.folderKey, builder: (column) => column);
 }
 
 class $$AssessmentsTableTableManager extends RootTableManager<
@@ -1493,10 +1599,12 @@ class $$AssessmentsTableTableManager extends RootTableManager<
             Value<String?> evaluatorName = const Value.absent(),
             Value<String?> subjectName = const Value.absent(),
             Value<String?> tags = const Value.absent(),
+            Value<String?> scaleJson = const Value.absent(),
             Value<String?> summaryNote = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
             Value<String?> importFingerprint = const Value.absent(),
+            Value<String?> folderKey = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               AssessmentsCompanion(
@@ -1507,10 +1615,12 @@ class $$AssessmentsTableTableManager extends RootTableManager<
             evaluatorName: evaluatorName,
             subjectName: subjectName,
             tags: tags,
+            scaleJson: scaleJson,
             summaryNote: summaryNote,
             createdAt: createdAt,
             updatedAt: updatedAt,
             importFingerprint: importFingerprint,
+            folderKey: folderKey,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1521,10 +1631,12 @@ class $$AssessmentsTableTableManager extends RootTableManager<
             Value<String?> evaluatorName = const Value.absent(),
             Value<String?> subjectName = const Value.absent(),
             Value<String?> tags = const Value.absent(),
+            Value<String?> scaleJson = const Value.absent(),
             Value<String?> summaryNote = const Value.absent(),
             required int createdAt,
             required int updatedAt,
             Value<String?> importFingerprint = const Value.absent(),
+            Value<String?> folderKey = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               AssessmentsCompanion.insert(
@@ -1535,10 +1647,12 @@ class $$AssessmentsTableTableManager extends RootTableManager<
             evaluatorName: evaluatorName,
             subjectName: subjectName,
             tags: tags,
+            scaleJson: scaleJson,
             summaryNote: summaryNote,
             createdAt: createdAt,
             updatedAt: updatedAt,
             importFingerprint: importFingerprint,
+            folderKey: folderKey,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

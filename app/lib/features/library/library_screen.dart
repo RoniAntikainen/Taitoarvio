@@ -18,11 +18,18 @@ class LibraryScreen extends ConsumerStatefulWidget {
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   StreamSubscription<List<SharedMediaFile>>? _sub;
 
+  bool get _supportsReceiveShare =>
+      Platform.isAndroid || Platform.isIOS; // Windows/mac/linux: false
+
   @override
   void initState() {
     super.initState();
-    ReceiveSharingIntent.instance.getInitialMedia().then(_handleSharedFiles);
-    _sub = ReceiveSharingIntent.instance.getMediaStream().listen(_handleSharedFiles);
+
+    // Vain mobiilissa: kuunnellaan jaetut tiedostot
+    if (_supportsReceiveShare) {
+      ReceiveSharingIntent.instance.getInitialMedia().then(_handleSharedFiles);
+      _sub = ReceiveSharingIntent.instance.getMediaStream().listen(_handleSharedFiles);
+    }
   }
 
   Future<void> _handleSharedFiles(List<SharedMediaFile> files) async {
@@ -32,6 +39,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         .map((f) => f.path)
         .where((p) => p.toLowerCase().endsWith('.evalpack'))
         .toList();
+
     if (evalpacks.isEmpty) return;
 
     final importer = ref.read(importerProvider);
@@ -53,7 +61,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       }
     }
 
-    ReceiveSharingIntent.instance.reset();
+    // Reset vain mobiilissa
+    if (_supportsReceiveShare) {
+      ReceiveSharingIntent.instance.reset();
+    }
+
     if (mounted) setState(() {});
   }
 
@@ -66,7 +78,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   Future<void> _createSample() async {
     final repo = ref.read(assessmentRepoProvider);
     await repo.createSampleAssessment(evaluator: 'Valmentaja', subject: 'Oppilas');
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   Future<void> _importManual() async {
@@ -85,7 +97,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           const SnackBar(content: Text('Import onnistui')),
         );
       }
-      setState(() {});
+      if (mounted) setState(() {});
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
