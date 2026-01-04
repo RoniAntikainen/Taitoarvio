@@ -42,8 +42,9 @@ class EvalpackExporter {
 
     final rubricJson = assessment.rubricSnapshot;
 
-    // IMPORTANT: käytä "\n" samalla tavalla myös importerissa.
-    final fingerprintHex = sha256HexFromString('${assessmentJson}\n${rubricJson}');
+    // Fingerprint is computed from assessment + rubric with a newline separator.
+    final fingerprintHex =
+        sha256HexFromString('${assessmentJson}\n${rubricJson}');
     final fingerprint = 'sha256:$fingerprintHex';
 
     final manifest = EvalpackManifest(

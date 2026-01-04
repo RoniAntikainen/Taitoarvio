@@ -1,6 +1,8 @@
 ﻿import 'dart:async';
 import 'dart:io';
 
+import '../assessment/new_assessment_wizard.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -161,10 +163,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createSample,
+        onPressed: () async {
+          final ok = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(builder: (_) => const NewAssessmentWizard()),
+          );
+          if (ok == true) setState(() {});
+        },
         icon: const Icon(Icons.add),
-        label: const Text('Luo esimerkki'),
+        label: const Text('Uusi arviointi'),
       ),
+
     );
   }
 }

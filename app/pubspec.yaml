@@ -10,6 +10,9 @@ dependencies:
   app_links: ^6.4.0
   url_launcher: ^6.3.0
   
+  shared_preferences: ^2.2.3
+
+  
 
   flutter_riverpod: ^2.5.1
   drift: ^2.20.0

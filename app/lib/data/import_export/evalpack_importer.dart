@@ -39,7 +39,6 @@ class EvalpackImporter {
     final assessmentJsonStr = utf8.decode(assessmentBytes);
     final rubricJsonStr = utf8.decode(rubricBytes);
 
-    // IMPORTANT: sama fingerprint-sääntö kuin exporterissa
     final computed =
         'sha256:${sha256HexFromString('${assessmentJsonStr}\n${rubricJsonStr}')}';
 
@@ -103,7 +102,7 @@ class EvalpackImporter {
         return AnswersCompanion.insert(
           id: _uuid.v4(),
           assessmentId: newAssessmentId,
-          criterionId: (m['criterionId'] as String?) ?? '',
+          criterionId: m['criterionId'] as String,
           value: Value((m['value'] as String?) ?? ''),
           comment: Value((m['comment'] as String?) ?? ''),
         );
