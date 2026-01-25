@@ -1,0 +1,23 @@
+[
+  {
+    "id": "fb-2026-03-01-1",
+    "date": "2026-03-01",
+    "title": "Harjoitusottelu: FC Esimerkki",
+    "location": "Kotistadion",
+    "details": "Kokoontuminen 30 min ennen. Peliasu: punainen. Mukaan juomapullo."
+  },
+  {
+    "id": "fb-2026-03-15-1",
+    "date": "2026-03-15",
+    "title": "Sarjapeli: Vastustaja United",
+    "location": "Vieras",
+    "details": "Bussi lähtee 10:00. Palaveri 09:30. Lämmittely 45 min."
+  },
+  {
+    "id": "fb-2026-04-02-1",
+    "date": "2026-04-02",
+    "title": "Turnaus: Kevätcup",
+    "location": "Helsinki",
+    "details": "Pelit 3x 25 min. Välipalat mukaan. Ilmoita allergiat etukäteen."
+  }
+]

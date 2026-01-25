@@ -1,0 +1,328 @@
+/* =========================
+   EvaluationForm (responsive)
+   ========================= */
+
+.evalForm {
+  /* Layout */
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: clamp(16px, 3vw, 28px);
+
+  /* Card-like surface */
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255, 255, 255, 0.92);
+
+  /* Spacing */
+  display: grid;
+  gap: clamp(14px, 2.2vw, 20px);
+
+  /* Typography defaults */
+  color: rgba(0, 0, 0, 0.86);
+}
+
+@media (prefers-color-scheme: dark) {
+  .evalForm {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(18, 18, 18, 0.78);
+    color: rgba(255, 255, 255, 0.90);
+  }
+}
+
+.evalForm h2 {
+  margin: 0;
+  font-size: clamp(20px, 2.2vw, 28px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.evalForm h3 {
+  margin: 0 0 6px;
+  font-size: clamp(16px, 1.6vw, 20px);
+  line-height: 1.2;
+}
+
+.evalForm h4 {
+  margin: 0 0 10px;
+  font-size: clamp(14px, 1.25vw, 16px);
+  line-height: 1.2;
+  opacity: 0.95;
+}
+
+/* --- Shared field styling --- */
+.evalForm label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.evalForm input,
+.evalForm select {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(255, 255, 255, 0.92);
+
+  color: inherit;
+  font: inherit;
+
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .evalForm input,
+  .evalForm select {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.evalForm input::placeholder {
+  opacity: 0.65;
+}
+
+.evalForm input:focus,
+.evalForm select:focus {
+  border-color: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.10);
+}
+
+@media (prefers-color-scheme: dark) {
+  .evalForm input:focus,
+  .evalForm select:focus {
+    border-color: rgba(255, 255, 255, 0.34);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* --- Header: evaluator + subject --- */
+.evaluation-header {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+@media (prefers-color-scheme: dark) {
+  .evaluation-header {
+    border-color: rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Tablet+ : two columns */
+@media (min-width: 720px) {
+  .evaluation-header {
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+}
+
+/* --- The next <div> (Laji + Asteikko) --- */
+/* Sun JSX:ssa tää div ei ole classattu, joten kohdistetaan evalFormin suoriin lapsi-div:eihin varovasti:
+   - tämä osuu käytännössä siihen toiseen "kenttäblokin" diviin (evaluation-headerin jälkeen),
+     mutta ei evalBlockiin, koska evalBlockilla on oma class.
+*/
+.evalForm > div:not(.evaluation-header):not(.evalBlock) {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+@media (prefers-color-scheme: dark) {
+  .evalForm > div:not(.evaluation-header):not(.evalBlock) {
+    border-color: rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+@media (min-width: 720px) {
+  .evalForm > div:not(.evaluation-header):not(.evalBlock) {
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+}
+
+/* --- Blocks (Kriteerit / Tanssit) --- */
+.evalBlock {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255, 255, 255, 0.70);
+
+  display: grid;
+  gap: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .evalBlock {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+/* Rows inside blocks */
+.evalRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+@media (prefers-color-scheme: dark) {
+  .evalRow {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+/* Desktop: label left, select right */
+@media (min-width: 720px) {
+  .evalRow {
+    grid-template-columns: minmax(220px, 1fr) 180px;
+    align-items: center;
+  }
+}
+
+.evalLabel {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  opacity: 0.98;
+}
+
+/* Subsection (each dance / subitem) */
+.evalSub {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.015);
+
+  display: grid;
+  gap: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .evalSub {
+    border-color: rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.03);
+  }
+}
+
+/* --- Submit button --- */
+.evalForm button[type="submit"] {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 14px;
+
+  background: rgba(0, 0, 0, 0.90);
+  color: rgba(255, 255, 255, 0.96);
+
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+
+  transition: transform 120ms ease, opacity 120ms ease, box-shadow 120ms ease;
+}
+
+.evalForm button[type="submit"]:hover {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
+}
+
+.evalForm button[type="submit"]:active {
+  transform: translateY(0px);
+  opacity: 0.92;
+}
+
+@media (prefers-color-scheme: dark) {
+  .evalForm button[type="submit"] {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.92);
+    color: rgba(0, 0, 0, 0.92);
+  }
+}
+
+/* --- Small accessibility niceties --- */
+.evalForm :where(input, select, button) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.evalForm :where(select) {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 40px;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .evalForm *,
+  .evalForm *::before,
+  .evalForm *::after {
+    transition: none !important;
+  }
+}
+
+
+.scaleRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stars__clear {
+  border: 0;
+  background: transparent;
+  padding: 6px 8px;
+  border-radius: 10px;
+  opacity: .7;
+}
+
+.star {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  padding: 6px;
+  border-radius: 10px;
+  opacity: .35;
+}
+
+.star.isActive {
+  opacity: 1;
+}

@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("user")
+
+  accounts    Account[]
+  sessions    Session[]
+  evaluations Evaluation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members       FolderMember[]
+  evaluations   Evaluation[]
+  notifications Notification[]
+  items         FolderItem[]
+
+  @@unique([ownerId, name])
+  @@index([ownerId, createdAt])
+}
+
+model FolderMember {
+  id        String   @id @default(cuid())
+  folderId  String
+  userEmail String
+  role      String   @default("viewer")
+  createdAt DateTime @default(now())
+
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@unique([folderId, userEmail])
+  @@index([userEmail])
+}
+
+model FolderItem {
+  id        String   @id @default(cuid())
+  folderId  String
+  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  // “juttu” voi olla muistiinpano, linkki, tiedoston metadata jne.
+  type      String   // note | link | file
+  title     String
+  content   String?  // note-teksti
+  url       String?  // linkki / file url (jos käytät)
+  createdBy String?  // email (kätevä auditointiin)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([folderId, createdAt])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userEmail String
+  folderId  String?
+  title     String
+  body      String?
+  href      String?
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([userEmail, createdAt])
+}
+
+model Evaluation {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  evaluator  String
+  subject    String
+  sportId    String
+  sportLabel String
+  scaleId    String
+  scaleLabel String
+  data       Json
+
+  folderId String?
+  folder   Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([folderId, createdAt])
+}
