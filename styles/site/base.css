@@ -1,0 +1,8 @@
+/* styles/base.css */
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  background: var(--color-bg);
+}

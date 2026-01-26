@@ -1,6 +1,7 @@
 import AppShell from "@/components/shell/AppShell";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import "@/styles/app/globals.css";
 
 export const metadata = {
   robots: { index: false, follow: false },

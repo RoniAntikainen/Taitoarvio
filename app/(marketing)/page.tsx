@@ -1,15 +1,25 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import ScrollyExperience from "@/components/scrolly/ScrollyExperience";
 
-export default function MarketingHome() {
+export const metadata: Metadata = {
+  title: "BeatSport — Valmennus yhdessä näkymässä",
+  description:
+    "Uppouttava valmennuskokemus: seuranta, palaute ja muistiot yhdessä paikassa. Kaikki lajit.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    title: "BeatSport",
+    description:
+      "Uppouttava valmennuskokemus: seuranta, palaute ja muistiot yhdessä paikassa.",
+    url: "https://www.beatsport.fi/",
+    siteName: "BeatSport",
+  },
+};
+
+export default function Page() {
   return (
-    <main style={{ padding: 24, maxWidth: 900 }}>
-      <h1 style={{ fontSize: 32, fontWeight: 800 }}>Marketing</h1>
-      <p style={{ marginTop: 12, opacity: 0.8 }}>
-        Tämä on julkinen SEO-puoli. Appi löytyy /app.
-      </p>
-      <div style={{ marginTop: 16 }}>
-        <Link href="/app">Avaa appi</Link>
-      </div>
+    <main id="main-content">
+      <ScrollyExperience />
     </main>
   );
 }
