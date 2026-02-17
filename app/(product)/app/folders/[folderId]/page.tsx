@@ -47,11 +47,10 @@ export default async function FolderDetailPage({
 
   const { folder, role } = await getFolderView(folderId);
 
-  // getFolderProfile() palauttaa nykyään Folder-olion,
-  // joten sportId/athleteName voi puuttua -> demo-safe fallback.
+  // getFolderProfile() palauttaa Folder-olion, joten sportId/athleteName voi puuttua.
   const profile = await getFolderProfile(folderId);
-
-  const sportId: string = (profile as any)?.sportId ?? "dance";
+  const sportId: "dance" | "football" =
+    ((profile as any)?.sportId as "dance" | "football") ?? "dance";
   const athleteName: string = (profile as any)?.athleteName ?? "—";
 
   const plan = await getSection(folderId, "plan");
@@ -104,7 +103,7 @@ export default async function FolderDetailPage({
         </div>
       </header>
 
-      {/* QUICK ACTIONS (ei kilpaile CTA:n kanssa) */}
+      {/* QUICK ACTIONS */}
       <section className="fd-toolbar" aria-label="Pikatoiminnot">
         <button className="btn btn--ghost" disabled>
           + Uusi muistiinpano
@@ -193,11 +192,16 @@ export default async function FolderDetailPage({
           action={saveResultsJsonFromForm.bind(null, folderId)}
           className="fd-form"
         >
-          <ResultsEditor
-            sportId={sportId as any}
-            initialJson={results.content || "[]"}
-            readOnly={!canEdit}
-          />
+          {canEdit ? (
+            <ResultsEditor
+              folderId={folderId}
+              sportId={sportId}
+              initialJson={results.content || "[]"}
+            />
+          ) : (
+            <pre className="fd-pre">{results.content || "[]"}</pre>
+          )}
+
           <div className="fd-formActions">
             {canEdit && (
               <button className="btn btn--primary">Tallenna tulokset</button>
@@ -308,7 +312,7 @@ export default async function FolderDetailPage({
         )}
       </section>
 
-      {/* ✅ MEETINGS (lisätty pohjalle, ei uusia CSS-luokkia) */}
+      {/* ✅ MEETINGS */}
       <section className="fd-section">
         <div className="fd-sectionHead">
           <h2 className="fd-sectionTitle">Tapaamiset</h2>
