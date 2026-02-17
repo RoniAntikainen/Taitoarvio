@@ -1,0 +1,24 @@
+/* =========================================================
+   DESIGN TOKENS – APP ENTRY POINT
+   ========================================================= */
+
+/* Colors */
+@import "./colors.css";
+
+/* Spacing */
+@import "./spacing.css";
+
+/* Typography */
+@import "./typography.css";
+
+/* Radius */
+@import "./radius.css";
+
+/* Shadow / Elevation */
+@import "./shadow.css";
+
+/* Motion / Animation */
+@import "./motion.css";
+
+/* Z-index */
+@import "./z-index.css";

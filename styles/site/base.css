@@ -3,6 +3,6 @@ html {
   font-family: var(--font-sans);
 }
 
-body {
+body[data-scope="marketing"] {
   background: var(--color-bg);
 }

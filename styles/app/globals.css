@@ -1,5 +1,21 @@
-@import "./app-shell.css";
+@import "./tokens/index.css";
 
-@import "./components/from/EvaluationFrom.css";
+@import "./00-reset.css";
+@import "./01-base.css";
 
-@import "./components/shell/tabbar.css";
+
+
+@import "./20-card.css";
+@import "./21-button.css";
+@import "./22-form.css";
+@import "./23-table.css";
+
+@import "./30-nav.css";
+@import "./31-table.css";
+@import "./32-topbar.css";
+@import "./33-bottombar.css";
+@import "./34-userChip.css";
+
+@import "./40-page.css";
+
+@import "./10-shell.css";

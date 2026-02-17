@@ -1,6 +1,23 @@
 export type Mode = "mobile" | "tablet" | "desktop";
 
-export type IconName = "home" | "library" | "bell" | "chart";
+export type IconName =
+  | "home"
+  | "library"
+  | "bell"
+  | "chart"
+  | "users"
+  | "calendar"
+  | "settings"
+  | "shield"
+  | "file"
+  | "clipboard"
+  | "star"
+  | "search"
+  | "plus"
+  | "activity"
+  | "database"
+  | "help";
+
 
 export type NavItem = {
   id: string;
@@ -11,8 +28,15 @@ export type NavItem = {
 };
 
 export const APP_NAV: NavItem[] = [
-  { id: "home", label: "Koti", href: "/app", icon: "home" },
-
+  // =========================
+  // CORE (kaikissa)
+  // =========================
+  {
+    id: "home",
+    label: "Koti",
+    href: "/app",
+    icon: "home",
+  },
   {
     id: "folders",
     label: "Kirjasto",
@@ -20,18 +44,24 @@ export const APP_NAV: NavItem[] = [
     icon: "library",
   },
 
-  {
-    id: "notifications",
-    label: "Ilmoitukset",
-    href: "/app/notifications",
-    icon: "bell",
-  },
+  // =========================
+  // WORK (tablet + desktop)
+  // =========================
 
   {
-    id: "reports",
-    label: "Raportit",
-    href: "/app/reports",
-    icon: "chart",
+    id: "calendar",
+    label: "Kalenteri",
+    href: "/app/calendar",
+    icon: "calendar",
     showOn: { mobile: false, tablet: true, desktop: true },
   },
+  
+  {
+    id: "settings",
+    label: "Settings",
+    href: "/app/settings",
+    icon: "settings",
+    showOn: { mobile: false, tablet: true, desktop: true },
+  },
+
 ];

@@ -308,18 +308,3 @@
   }
 }
 
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .bgGlowA,
-  .bgGlowB {
-    animation: none !important;
-  }
-  .deck {
-    scroll-behavior: auto;
-  }
-  .ctaPrimary,
-  .ctaSecondary,
-  .card {
-    transition: none !important;
-  }
-}

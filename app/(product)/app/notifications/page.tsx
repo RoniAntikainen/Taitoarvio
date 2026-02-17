@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listNotifications } from "@/app/actions/folders";
+import "./notifications.css";
 
 export default async function NotificationsPage() {
   const items = await listNotifications();

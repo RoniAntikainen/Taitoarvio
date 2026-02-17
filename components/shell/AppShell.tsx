@@ -1,43 +1,59 @@
-import { auth } from "@/auth";
+// components/shell/AppShell.tsx
 import AppNav from "@/components/nav/AppNav";
 import UserSheet from "@/components/user/UserMenu";
+import { auth } from "@/auth";
 
-export default async function AppShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AppShell({ children }: { children: React.ReactNode }) {
   const session = await auth();
+  const me = session?.user ?? null;
 
   return (
     <div className="appShell">
-      {/* Tablet topbar */}
-      <header className="appTopbar">
-        <div className="appTopbar__brand">Taitoarvio</div>
-        <nav className="appTopbar__nav">
-          <AppNav mode="tablet" />
-        </nav>
-        <div className="appTopbar__user">
-          {session?.user && <UserSheet user={session.user} />}
+      <header className="appTopbar" aria-label="Tablet top bar">
+        <div className="appTopbar__inner">
+          <div className="appTopbar__brand">
+            <span className="appBrand__text">Taitoarvio</span>
+          </div>
+
+          <div className="appTopbar__nav">
+            <AppNav mode="tablet" />
+          </div>
+
+          <div className="appTopbar__user">{me ? <UserSheet user={me} /> : null}</div>
         </div>
       </header>
 
-      {/* Desktop sidebar */}
-      <aside className="appSidebar">
-        <nav className="appSidebar__nav">
-          <AppNav mode="desktop" />
-        </nav>
-        <div className="appSidebar__user">
-          {session?.user && <UserSheet user={session.user} />}
+      <aside className="appSidebar" aria-label="Sidebar navigation">
+        <div className="appSidebar__inner">
+          <div className="appSidebar__brand">
+            <span className="appBrand__text">Taitoarvio</span>
+          </div>
+
+          <nav className="appSidebar__nav" aria-label="Primary navigation">
+            <AppNav mode="desktop" />
+          </nav>
+
+          <div className="appSidebar__profile" aria-label="Account">
+            <div className="appSidebar__profileAvatar">{me ? <UserSheet user={me} /> : null}</div>
+            <div className="appSidebar__profileMeta">
+              <div className="appSidebar__profileName">{me?.name ?? "Käyttäjä"}</div>
+              <div className="appSidebar__profileSub">{me?.email ?? ""}</div>
+            </div>
+          </div>
         </div>
       </aside>
 
-      <main className="appMain">{children}</main>
+      <main className="appMain">
+        <div className="appMain__inner">{children}</div>
+      </main>
 
-      {/* Mobile bottom bar */}
-      <nav className="appTabbar">
-        <AppNav mode="mobile" />
-        {session?.user && <UserSheet user={session.user} />}
+      <nav className="appTabbar" aria-label="Primary navigation">
+        <div className="appTabbar__inner">
+          <div className="appTabbar__nav">
+            <AppNav mode="mobile" />
+          </div>
+          <div className="appTabbar__user">{me ? <UserSheet user={me} /> : null}</div>
+        </div>
       </nav>
     </div>
   );

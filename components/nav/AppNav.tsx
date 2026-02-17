@@ -1,27 +1,22 @@
 import Link from "next/link";
-import { APP_NAV, type Mode, type NavItem } from "@/lib/nav";
-import { NavIcon } from "@/components/icons/NavIcon";
+import Icon from "@/components/icon/Icon";
+import { APP_NAV } from "@/lib/nav";
 
-function visible(item: NavItem, mode: Mode) {
-  const v = item.showOn?.[mode];
-  return v !== false;
-}
-
-export default function AppNav({ mode }: { mode: Mode }) {
-  const items = APP_NAV.filter((i) => visible(i, mode));
-
+export default function AppNav({ mode }: { mode: "mobile" | "tablet" | "desktop" }) {
   return (
     <>
-      {items.map((item) => (
-        <Link key={item.id} href={item.href} className="appNavLink">
-          <NavIcon name={item.icon} />
-
-
-          {mode !== "mobile" && (
-            <span className="appNavLabel">{item.label}</span>
-          )}
-        </Link>
-      ))}
+      {APP_NAV
+        .filter(item => item.showOn?.[mode] !== false)
+        .map(item => (
+          <Link
+            key={item.id}
+            href={item.href}
+            aria-current={false /* korvaa oikealla checkillä */}
+          >
+            <Icon name={item.icon} />
+            <span className="navLabel">{item.label}</span>
+          </Link>
+        ))}
     </>
   );
 }

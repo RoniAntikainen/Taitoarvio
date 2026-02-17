@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import styles from "./scrolly.module.css";
 
 const forceMotion = process.env.NODE_ENV === "development";
@@ -44,12 +44,15 @@ const SCENES: Scene[] = [
   },
 ];
 
+const PINNED_COUNT = 2;
+
 function RightVisual({ type }: { type: Scene["rightType"] }) {
   if (type === "appCard") {
     return (
       <div className={styles.glassCard} data-anim="card">
         <div className={styles.cardTitle}>BeatSport Web App</div>
         <div className={styles.cardMeta}>Kaikki lajit • Valmentajille</div>
+
         <div className={styles.cardRow}>
           <div className={styles.pill}>
             <span>PALAUTE</span>
@@ -125,13 +128,31 @@ function RightVisual({ type }: { type: Scene["rightType"] }) {
 
 export default function ScrollyExperience() {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = rootRef.current;
+    const video = videoRef.current;
     if (!root) return;
+
+    // ===== hidasta video =====
+    if (video) {
+      video.playbackRate = 0.5;
+      // iOS/Safari safe autoplay
+      requestAnimationFrame(() => {
+        video.play().catch(() => {});
+      });
+    }
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce && !forceMotion) return;
+
+    // ===== header height (tärkeä startin kannalta) =====
+    const headerEl =
+      document.querySelector<HTMLElement>(".site-header") ??
+      document.querySelector<HTMLElement>("header");
+    const headerH = Math.round(headerEl?.getBoundingClientRect().height ?? 0);
+    if (headerH > 0) root.style.setProperty("--header-h", `${headerH}px`);
 
     let ctx: { revert: () => void } | null = null;
 
@@ -141,138 +162,192 @@ export default function ScrollyExperience() {
 
       const stMod = await import("gsap/ScrollTrigger");
       const ScrollTrigger = stMod.ScrollTrigger;
-
       gsap.registerPlugin(ScrollTrigger);
 
       ctx = gsap.context(() => {
-        const scenes = gsap.utils.toArray<HTMLElement>("[data-scene]");
-        const far = root.querySelector("[data-layer='far']");
-        const mid = root.querySelector("[data-layer='mid']");
-        const near = root.querySelector("[data-layer='near']");
-        const progress = root.querySelector("[data-progress]");
+        const SCROLL_PER_SCENE = 0.65;
+        const STEP = 0.20;
+        const HOLD = 0.16;
 
-        // Stack: only first visible initially
-        gsap.set(scenes, { autoAlpha: 0 });
-        gsap.set(scenes[0], { autoAlpha: 1 });
+        const scenes = gsap.utils.toArray<HTMLElement>("[data-scene]");
+
+        const far = root.querySelector<HTMLElement>("[data-layer='far']");
+        const mid = root.querySelector<HTMLElement>("[data-layer='mid']");
+        const near = root.querySelector<HTMLElement>("[data-layer='near']");
+        const vid = root.querySelector<HTMLElement>("[data-layer='video']");
+        const progress = root.querySelector<HTMLElement>("[data-progress]");
+
+        // stack scenes
+        gsap.set(scenes, { autoAlpha: 0, pointerEvents: "none" });
+        gsap.set(scenes[0], { autoAlpha: 1, pointerEvents: "auto" });
 
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: root,
-            start: "top top",
-            end: () => `+=${window.innerHeight * (scenes.length * 1.15)}`,
+            // ✅ alkaa heti kun pinned-osio on headerin alapuolella
+            start: () => `top top+=${headerH}`,
+            end: () =>
+              `+=${window.innerHeight * (scenes.length * SCROLL_PER_SCENE)}`,
             scrub: 1,
             pin: true,
             anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              if (progress) {
+                progress.style.transform = `scaleY(${self.progress})`;
+                progress.style.transformOrigin = "top";
+              }
+            },
           },
         });
 
-        // Parallax
-        if (far) tl.to(far, { yPercent: -10, ease: "none" }, 0);
-        if (mid) tl.to(mid, { yPercent: -18, ease: "none" }, 0);
-        if (near) tl.to(near, { yPercent: -28, ease: "none" }, 0);
+        // drift vain y (ei sivulle)
+        if (vid) tl.to(vid, { yPercent: -10, xPercent: 0, ease: "none" }, 0);
+        if (far) tl.to(far, { yPercent: -14, xPercent: 0, ease: "none" }, 0);
+        if (mid) tl.to(mid, { yPercent: -22, xPercent: 0, ease: "none" }, 0);
+        if (near) tl.to(near, { yPercent: -30, xPercent: 0, ease: "none" }, 0);
 
-        // Progress rail
-        if (progress) {
-          tl.fromTo(
-            progress,
-            { scaleY: 0, transformOrigin: "top" },
-            { scaleY: 1, ease: "none" },
-            0
-          );
-        }
-
-        // Scenes
+        // scenes
         scenes.forEach((scene, i) => {
           const t = scene.querySelector("[data-anim='title']");
           const b = scene.querySelector("[data-anim='body']");
           const c = scene.querySelector("[data-anim='card']");
 
-          const at = i * 1.0;
+          const at = i * STEP;
 
-          tl.to(scene, { autoAlpha: 1, duration: 0.18, ease: "none" }, at);
+          tl.to(scene, { autoAlpha: 1, pointerEvents: "auto", duration: 0.1 }, at);
 
-          if (t) {
+          if (i > 0 && t) {
             tl.fromTo(
               t,
-              { y: 18, autoAlpha: 0, filter: "blur(10px)" },
-              { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: 0.35, ease: "power2.out" },
-              at + 0.08
+              { y: 14, autoAlpha: 0, filter: "blur(10px)" },
+              { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: 0.18, ease: "power2.out" },
+              at + 0.04
             );
           }
-          if (b) {
+          if (i > 0 && b) {
             tl.fromTo(
               b,
-              { y: 14, autoAlpha: 0, filter: "blur(10px)" },
-              { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: 0.35, ease: "power2.out" },
-              at + 0.14
+              { y: 10, autoAlpha: 0, filter: "blur(10px)" },
+              { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: 0.18, ease: "power2.out" },
+              at + 0.06
             );
           }
-          if (c) {
+          if (i > 0 && c) {
             tl.fromTo(
               c,
-              { y: 22, autoAlpha: 0, rotateX: 8, transformPerspective: 900 },
-              { y: 0, autoAlpha: 1, rotateX: 0, duration: 0.45, ease: "power2.out" },
-              at + 0.16
+              { y: 16, autoAlpha: 0, rotateX: 6, transformPerspective: 900 },
+              { y: 0, autoAlpha: 1, rotateX: 0, duration: 0.22, ease: "power2.out" },
+              at + 0.07
             );
           }
 
           if (i < scenes.length - 1) {
-            tl.to(scene, { autoAlpha: 0, duration: 0.18, ease: "none" }, at + 0.95);
+            tl.to(scene, { autoAlpha: 0, pointerEvents: "none", duration: 0.1 }, at + HOLD);
           }
         });
 
-        const onResize = () => ScrollTrigger.refresh();
-        window.addEventListener("resize", onResize);
+        
 
-        return () => {
-          window.removeEventListener("resize", onResize);
+        // ===== KRIITTINEN: refresh + update kun layout on varmasti valmis =====
+        const hardRefresh = () => {
+          ScrollTrigger.refresh(true);
+          ScrollTrigger.update();
         };
+        const raf2 = (fn: () => void) =>
+          requestAnimationFrame(() => requestAnimationFrame(fn));
+
+        const v = videoRef.current;
+        if (v && v.readyState < 2) {
+          const onMeta = () => {
+            raf2(hardRefresh);
+            v.removeEventListener("loadedmetadata", onMeta);
+          };
+          v.addEventListener("loadedmetadata", onMeta);
+        } else {
+          raf2(hardRefresh);
+        }
+
       }, root);
     })();
 
-    return () => {
-      ctx?.revert();
-    };
+    return () => ctx?.revert();
   }, []);
 
+  const pinnedScenes = SCENES.slice(0, PINNED_COUNT);
+  const normalScenes = SCENES.slice(PINNED_COUNT);
+
   return (
-    <div ref={rootRef} className={styles.experience}>
-      <div className={styles.bg} aria-hidden="true">
-        <div className={styles.layerFar} data-layer="far" />
-        <div className={styles.layerMid} data-layer="mid" />
-        <div className={styles.layerNear} data-layer="near" />
-        <div className={styles.noise} />
+    <>
+      {/* ===== PINNED SCROLLYTELLING (vain 2 ekaa sceneä) ===== */}
+      <div ref={rootRef} className={styles.experience}>
+        <div className={styles.bg} aria-hidden="true">
+          <video
+            ref={videoRef}
+            className={styles.bgVideo}
+            data-layer="video"
+            autoPlay
+            muted
+            playsInline
+            loop
+            preload="metadata"
+          >
+            <source src="/media/scrolly-bg.mp4" type="video/mp4" />
+          </video>
+
+          <div className={styles.layerFar} data-layer="far" />
+          <div className={styles.layerMid} data-layer="mid" />
+          <div className={styles.layerNear} data-layer="near" />
+          <div className={styles.noise} />
+        </div>
+
+        <div className={styles.progressRail} aria-hidden="true">
+          <div className={styles.progressFill} data-progress />
+        </div>
+
+        <div className={styles.stage}>
+          {pinnedScenes.map((s) => (
+            <section key={s.id} className={styles.scene} data-scene aria-label={s.eyebrow}>
+              <div className={styles.sceneInner}>
+                <div className={styles.copy}>
+                  <p className={styles.eyebrow}>{s.eyebrow}</p>
+                  <h1 className={styles.h1} data-anim="title">
+                    {s.title}
+                  </h1>
+                  <p className={styles.lead} data-anim="body">
+                    {s.lead}
+                  </p>
+                </div>
+
+                <RightVisual type={s.rightType} />
+              </div>
+
+              {s.id === "s1" && (
+                <div className={styles.hint} aria-hidden="true">
+                  Scroll ↓
+                </div>
+              )}
+            </section>
+          ))}
+        </div>
       </div>
 
-      <div className={styles.progressRail} aria-hidden="true">
-        <div className={styles.progressFill} data-progress />
-      </div>
-
-      <div className={styles.stage}>
-        {SCENES.map((s) => (
-          <section key={s.id} className={styles.scene} data-scene aria-label={s.eyebrow}>
+      {/* ===== NORMAALI SCROLL (loput scenet) ===== */}
+      <div className={styles.normalWrap}>
+        {normalScenes.map((s) => (
+          <section key={s.id} className={styles.normalScene} aria-label={s.eyebrow}>
             <div className={styles.sceneInner}>
               <div className={styles.copy}>
                 <p className={styles.eyebrow}>{s.eyebrow}</p>
-                <h1 className={styles.h1} data-anim="title">
-                  {s.title}
-                </h1>
-                <p className={styles.lead} data-anim="body">
-                  {s.lead}
-                </p>
+                <h1 className={styles.h1}>{s.title}</h1>
+                <p className={styles.lead}>{s.lead}</p>
               </div>
 
               <RightVisual type={s.rightType} />
             </div>
-
-            {s.id === "s1" && (
-              <div className={styles.hint} aria-hidden="true">
-                Scroll ↓
-              </div>
-            )}
           </section>
         ))}
       </div>
-    </div>
+    </>
   );
 }

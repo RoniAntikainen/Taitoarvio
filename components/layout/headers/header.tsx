@@ -4,32 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { signOut } from "next-auth/react";
 
-import {
-  HeaderNavLinks as navLinks,
-  HeaderActionLinks as actionLinks,
-} from "@/lib/header";
-import Button from "@/components/buttons/button";
+import { HeaderNavLinks as navLinks } from "@/lib/header";
 
-/**
- * Header + mobile drawer, a11y-first:
- * - Skip link
- * - aria-current
- * - ESC closes
- * - Scroll lock + scrollbar compensation
- * - Focus trap in dialog
- * - Focus restore to toggle
- * - Click overlay to close
- * - Optional inert/aria-hidden to background via #app-shell OR #main-content
- *
- * IMPORTANT:
- * For inert/aria-hidden to be correct, the element you target MUST NOT include this Header.
- * Recommended layout:
- *   <Header />
- *   <div id="app-shell">
- *     <main id="main-content">...</main>
- *   </div>
- */
+type EntitlementStatus = string; // voit halutessa tarkentaa unioniksi myöhemmin
+
+type Props = {
+  signedIn?: boolean;
+  hasPro?: boolean;      // "ostettu / tilattu"
+  status?: EntitlementStatus; // ✅ lisätty -> TS-virhe pois
+};
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -58,18 +43,17 @@ function getFocusable(container: HTMLElement) {
   return nodes.filter((el) => {
     if (el.hasAttribute("disabled")) return false;
     if (el.getAttribute("aria-hidden") === "true") return false;
-    if (el.offsetParent === null) return false; // display:none or hidden in layout
+    if (el.offsetParent === null) return false;
     return true;
   });
 }
 
 function setInert(el: HTMLElement, inert: boolean) {
-  // TS libdom may not have inert everywhere
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (el as any).inert = inert;
 }
 
-export default function Header() {
+export default function Header({ signedIn = false, hasPro = false }: Props) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -91,16 +75,46 @@ export default function Header() {
     [pathname]
   );
 
-  // Close on route change
+  const loginHref = useMemo(() => {
+    const cb = encodeURIComponent(pathname || "/");
+    return `/api/auth/signin?callbackUrl=${cb}`;
+  }, [pathname]);
+
+  // ✅ SUN HALUAMA LOGIIKKA
+  // 1) ei kirjautunut -> Aloita kokeilu + Kirjaudu sisään
+  // 2) kirjautunut + ei ostettu -> Aloita kokeilu + Kirjaudu ulos
+  // 3) kirjautunut + ostettu -> Avaa app + Kirjaudu ulos
+  const actions = useMemo(() => {
+    if (!signedIn) {
+      return {
+        primary: { href: "/pricing", label: "Aloita kokeilu", className: "button--primary" },
+        secondary: { href: loginHref, label: "Kirjaudu sisään", className: "button--ghost" },
+        showSignOut: false,
+      } as const;
+    }
+
+    if (hasPro) {
+      return {
+        primary: { href: "/app", label: "Avaa app", className: "button--primary" },
+        secondary: null,
+        showSignOut: true,
+      } as const;
+    }
+
+    return {
+      primary: { href: "/pricing", label: "Aloita kokeilu", className: "button--primary" },
+      secondary: null,
+      showSignOut: true,
+    } as const;
+  }, [signedIn, hasPro, loginHref]);
+
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
 
-  // Inert + aria-hidden for background (must NOT include header)
   useEffect(() => {
     if (typeof document === "undefined") return;
 
-    // Prefer main-content, fallback app-shell
     const bg =
       document.getElementById("main-content") ??
       document.getElementById("app-shell");
@@ -121,7 +135,6 @@ export default function Header() {
     };
   }, [menuOpen]);
 
-  // Open/close side effects: ESC, scroll lock, focus restore
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -142,18 +155,15 @@ export default function Header() {
       document.documentElement.style.overflow = prevOverflow;
       document.documentElement.style.paddingRight = prevPaddingRight;
 
-      // Restore focus to toggle
       toggleBtnRef.current?.focus();
     };
   }, [menuOpen, closeMenu]);
 
-  // Focus trap inside panel + focus first on open
   useEffect(() => {
     if (!menuOpen) return;
     const panel = panelRef.current;
     if (!panel) return;
 
-    // Focus first focusable; fallback panel
     const items = getFocusable(panel);
     (items[0] ?? panel).focus?.();
 
@@ -173,13 +183,11 @@ export default function Header() {
       const inPanel = !!active && panel.contains(active);
 
       if (e.shiftKey) {
-        // Shift+Tab: if focus outside panel or at first -> wrap to last
         if (!inPanel || active === first) {
           e.preventDefault();
           last.focus();
         }
       } else {
-        // Tab: if focus outside panel or at last -> wrap to first
         if (!inPanel || active === last) {
           e.preventDefault();
           first.focus();
@@ -193,7 +201,6 @@ export default function Header() {
 
   return (
     <>
-      {/* Skip link */}
       <a className="skipLink" href="#main-content">
         Siirry sisältöön
       </a>
@@ -202,12 +209,10 @@ export default function Header() {
         <div className="site-header__inner">
           <div className="site-header__logo">
             <Link href="/" aria-label="BeatSport etusivulle">
-              {/* Prefer span to avoid extra headings in layout; style via CSS */}
               <span className="site-header__brand">BeatSport</span>
             </Link>
           </div>
 
-          {/* Desktop nav */}
           <nav className="site-header__nav" aria-label="Päänavigaatio">
             <ul className="site-header__navList">
               {nav.map((link) => (
@@ -224,40 +229,52 @@ export default function Header() {
             </ul>
           </nav>
 
-          {/* Actions + mobile toggle */}
           <div className="site-header__actions">
             <div className="site-header__actionLinks">
-              {actionLinks.map((action) => (
+              {/* secondary: vain ei-kirjautuneena */}
+              {actions.secondary && (
                 <Link
-                  key={action.id}
-                  href={action.href}
-                  className={cx(
-                    "header__action-item",
-                    "button",
-                    action.className
-                  )}
+                  href={actions.secondary.href}
+                  className={cx("header__action-item", "button", actions.secondary.className)}
                 >
-                  {action.label}
+                  {actions.secondary.label}
                 </Link>
-              ))}
+              )}
+
+              {/* primary: aina */}
+              <Link
+                href={actions.primary.href}
+                className={cx("header__action-item", "button", actions.primary.className)}
+              >
+                {actions.primary.label}
+              </Link>
+
+              {/* signout: vain kirjautuneena */}
+              {actions.showSignOut && (
+                <button
+                  type="button"
+                  className={cx("header__action-item", "button", "button--outline")}
+                  onClick={() => signOut({ callbackUrl: pathname || "/" })}
+                >
+                  Kirjaudu ulos
+                </button>
+              )}
             </div>
 
-            <Button
+            <button
               ref={toggleBtnRef}
+              type="button"
               className="site-header__menuToggle"
-              variant="ghost"
               aria-expanded={menuOpen}
               aria-controls={panelId}
               aria-label={menuOpen ? "Sulje valikko" : "Avaa valikko"}
               onClick={toggleMenu}
-              type="button"
             >
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
-            </Button>
+            </button>
           </div>
         </div>
 
-        {/* Overlay (presentation-only). CSS should set pointer-events:none when closed. */}
         <div
           className={cx("mobileMenuOverlay", menuOpen && "is-open")}
           onClick={closeMenu}
@@ -265,7 +282,6 @@ export default function Header() {
           role="presentation"
         />
 
-        {/* Drawer */}
         <aside
           ref={panelRef}
           id={panelId}
@@ -280,15 +296,9 @@ export default function Header() {
               BeatSport
             </div>
 
-            <Button
-              variant="ghost"
-              className="mobileMenuClose"
-              aria-label="Sulje valikko"
-              onClick={closeMenu}
-              type="button"
-            >
+            <button type="button" className="mobileMenuClose" aria-label="Sulje valikko" onClick={closeMenu}>
               <X size={22} />
-            </Button>
+            </button>
           </div>
 
           <nav className="mobileMenuNav" aria-label="Mobiilinavigaatio">
@@ -309,16 +319,36 @@ export default function Header() {
           </nav>
 
           <div className="mobileMenuActions">
-            {actionLinks.map((action) => (
+            {actions.secondary && (
               <Link
-                key={action.id}
-                href={action.href}
-                className={cx("header__action-item", "button", action.className)}
+                href={actions.secondary.href}
+                className={cx("header__action-item", "button", actions.secondary.className)}
                 onClick={closeMenu}
               >
-                {action.label}
+                {actions.secondary.label}
               </Link>
-            ))}
+            )}
+
+            <Link
+              href={actions.primary.href}
+              className={cx("header__action-item", "button", actions.primary.className)}
+              onClick={closeMenu}
+            >
+              {actions.primary.label}
+            </Link>
+
+            {actions.showSignOut && (
+              <button
+                type="button"
+                className={cx("header__action-item", "button", "button--outline")}
+                onClick={() => {
+                  closeMenu();
+                  signOut({ callbackUrl: pathname || "/" });
+                }}
+              >
+                Kirjaudu ulos
+              </button>
+            )}
           </div>
         </aside>
       </header>

@@ -1,0 +1,141 @@
+/* =========================================
+   BeatSport — APP palette (Light + Dark)
+   Carbon Black + Burnt Orange
+   Distinctive, non-default, professional
+   ========================================= */
+
+/* ============ LIGHT THEME (default) ============ */
+:root {
+  color-scheme: light dark;
+
+  /* ---------- Base ---------- */
+  --color-black: #0e0f11;
+  --color-white: #ffffff;
+
+  /* Neutrals (carbon / industrial) */
+  --color-gray-50:  #fafafa;
+  --color-gray-100: #f2f3f4;
+  --color-gray-200: #e4e6e8;
+  --color-gray-300: #cfd3d7;
+  --color-gray-400: #a2a8ae;
+  --color-gray-500: #737a82;
+  --color-gray-600: #52585f;
+  --color-gray-700: #383d42;
+  --color-gray-800: #1f2327;
+  --color-gray-900: #111418;
+
+  /* Brand / Primary (burnt orange, not SaaS-orange) */
+  --color-primary:        #c2410c;
+  --color-primary-hover:  #9a3412;
+  --color-primary-active: #7c2d12;
+
+  /* Status */
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger:  #b91c1c;
+
+  /* ---------- App semantic tokens ---------- */
+  --color-bg:          #f4f5f6;
+  --color-surface:     #ffffff;
+  --color-surface-alt: #eceeef;
+  --color-elevated:    #ffffff;
+
+  /* Text */
+  --color-text:        #111418;
+  --color-text-strong: #0e0f11;
+  --color-text-muted:  #52585f;
+  --color-text-faint:  #737a82;
+
+  /* Borders */
+  --color-border:      rgba(17, 20, 24, 0.14);
+  --color-divider:     rgba(17, 20, 24, 0.10);
+
+  /* Links */
+  --color-link:        var(--color-primary);
+  --color-link-hover:  var(--color-primary-hover);
+
+  /* Inputs */
+  --color-input-bg:            var(--color-surface);
+  --color-input-border:        rgba(17, 20, 24, 0.22);
+  --color-input-border-hover:  rgba(17, 20, 24, 0.34);
+  --color-input-border-focus:  var(--color-primary);
+
+  /* Disabled */
+  --color-disabled-bg:         rgba(17, 20, 24, 0.05);
+  --color-disabled-text:       rgba(17, 20, 24, 0.45);
+
+  /* Effects */
+  --focus-ring:   rgba(194, 65, 12, 0.32);
+  --shadow-color: rgba(14, 15, 17, 0.18);
+
+  --gradient-brand: none;
+
+  /* Overlay */
+  --color-backdrop:  rgba(14, 15, 17, 0.56);
+  --color-selection: rgba(194, 65, 12, 0.18);
+}
+
+/* ============ DARK THEME (auto) ============ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-black: #000000;
+    --color-white: #ffffff;
+
+    /* Neutrals (deep carbon) */
+    --color-gray-50:  #090a0c;
+    --color-gray-100: #0e0f11;
+    --color-gray-200: #14161a;
+    --color-gray-300: #1b1e23;
+    --color-gray-400: #2a2e34;
+    --color-gray-500: #6b7280;
+    --color-gray-600: #9ca3af;
+    --color-gray-700: #d1d5db;
+    --color-gray-800: #e5e7eb;
+    --color-gray-900: #fafafa;
+
+    /* Brand / Primary */
+    --color-primary:        #fb923c;
+    --color-primary-hover:  #fdba74;
+    --color-primary-active: #f97316;
+
+    /* Status */
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-danger:  #f87171;
+
+    /* App surfaces */
+    --color-bg:          #0b0c0e;
+    --color-surface:     #14161a;
+    --color-surface-alt: #0e0f11;
+    --color-elevated:    #1b1e23;
+
+    /* Text */
+    --color-text:        var(--color-gray-700);
+    --color-text-strong: var(--color-gray-900);
+    --color-text-muted:  var(--color-gray-600);
+    --color-text-faint:  var(--color-gray-500);
+
+    /* Borders */
+    --color-border:      rgba(255, 255, 255, 0.14);
+    --color-divider:     rgba(255, 255, 255, 0.08);
+
+    /* Inputs */
+    --color-input-bg:            rgba(255, 255, 255, 0.04);
+    --color-input-border:        rgba(255, 255, 255, 0.18);
+    --color-input-border-hover:  rgba(255, 255, 255, 0.28);
+    --color-input-border-focus:  var(--color-primary);
+
+    /* Disabled */
+    --color-disabled-bg:         rgba(255, 255, 255, 0.06);
+    --color-disabled-text:       rgba(255, 255, 255, 0.48);
+
+    /* Effects */
+    --focus-ring:   rgba(251, 146, 60, 0.42);
+    --shadow-color: rgba(0, 0, 0, 0.65);
+
+    --gradient-brand: none;
+
+    --color-backdrop:  rgba(0, 0, 0, 0.72);
+    --color-selection: rgba(251, 146, 60, 0.22);
+  }
+}

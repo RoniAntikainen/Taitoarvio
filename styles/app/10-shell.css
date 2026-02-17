@@ -1,0 +1,61 @@
+.appShell {
+  min-height: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* näkyvyyslogiikka */
+.appSidebar,
+.appTopbar,
+.appTabbar {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .appTabbar { display: block; }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .appTopbar { display: block; }
+}
+
+@media (min-width: 1024px) {
+  .appSidebar { display: block; }
+  .appShell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+  }
+}
+
+/* content “inner” ettei leviä */
+.appMain {
+  padding: var(--space-5) var(--space-4);
+}
+
+.appMain__inner {
+  max-width: 1100px;
+}
+
+/* desktop: sisällön keskitys */
+@media (min-width: 1024px) {
+  .appMain__inner {
+    margin: 0 auto;
+  }
+}
+
+/* mobile: jätä tilaa tabbarille */
+@media (max-width: 639px) {
+  .appMain {
+    padding-bottom: calc(var(--space-6) + 72px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 639px) {
+  .appTabbar .navLabel {
+    display: none;
+  }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .appTopbar__nav .navLabel {
+    display: none;
+  }
+}

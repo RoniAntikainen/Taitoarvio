@@ -13,14 +13,41 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  role          String    @default("user")
 
-  accounts    Account[]
-  sessions    Session[]
-  evaluations Evaluation[]
+  accounts Account[]
+  sessions Session[]
+
+  marketingConsent   Boolean   @default(false)
+  marketingConsentAt DateTime?
+  unsubscribedAt     DateTime?
+
+  subscription Subscription?
+
+  role                  String    @default("user")
+  onboardingCompletedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status               String  @default("FREE") // FREE | TRIAL | ACTIVE | PAST_DUE | CANCELED
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+
+  trialEndsAt       DateTime?
+  currentPeriodEnd  DateTime?
+  cancelAtPeriodEnd Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
 }
 
 model Account {
@@ -60,50 +87,62 @@ model VerificationToken {
 }
 
 model Folder {
-  id        String   @id @default(cuid())
-  name      String
-  ownerId   String
+  id      String @id @default(cuid())
+  name    String
+  ownerId String // email
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   members       FolderMember[]
+  items         FolderItem[]
   evaluations   Evaluation[]
   notifications Notification[]
-  items         FolderItem[]
-
-  @@unique([ownerId, name])
-  @@index([ownerId, createdAt])
+  meetings      Meeting[] // ✅ opposite relation for Meeting.folder
 }
 
 model FolderMember {
-  id        String   @id @default(cuid())
   folderId  String
   userEmail String
-  role      String   @default("viewer")
+  role      String   @default("viewer") // viewer | editor
   createdAt DateTime @default(now())
 
   folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
 
-  @@unique([folderId, userEmail])
+  @@id([folderId, userEmail])
   @@index([userEmail])
 }
 
 model FolderItem {
   id        String   @id @default(cuid())
   folderId  String
-  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
-
-  // “juttu” voi olla muistiinpano, linkki, tiedoston metadata jne.
-  type      String   // note | link | file
+  type      String
   title     String
-  content   String?  // note-teksti
-  url       String?  // linkki / file url (jos käytät)
-  createdBy String?  // email (kätevä auditointiin)
-
+  content   String
+  createdBy String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  @@index([folderId, createdAt])
+  // nullable + default: ok existing rows
+  updatedAt DateTime? @default(now())
+
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@index([folderId])
+  @@index([folderId, type])
+}
+
+model Evaluation {
+  id         String   @id @default(cuid())
+  folderId   String
+  subject    String
+  evaluator  String
+  sportLabel String
+  data       String
+  createdAt  DateTime @default(now())
+
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@index([folderId])
 }
 
 model Notification {
@@ -111,36 +150,47 @@ model Notification {
   userEmail String
   folderId  String?
   title     String
-  body      String?
+  body      String
   href      String?
-  createdAt DateTime  @default(now())
   readAt    DateTime?
+  createdAt DateTime  @default(now())
 
   folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
-  @@index([userEmail, createdAt])
+  @@index([userEmail])
 }
 
-model Evaluation {
-  id String @id @default(cuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  evaluator  String
-  subject    String
-  sportId    String
-  sportLabel String
-  scaleId    String
-  scaleLabel String
-  data       Json
-
-  folderId String?
-  folder   Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+model Student {
+  id      String @id @default(cuid())
+  ownerId String // email
+  name    String
+  sportId String @default("football") // football | dance
+  notes   String @default("")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId, createdAt])
-  @@index([folderId, createdAt])
+  @@index([ownerId])
+  @@index([ownerId, sportId])
+}
+
+model Meeting {
+  id       String @id @default(cuid())
+  folderId String
+  folder   Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  title    String
+  startsAt DateTime
+  endsAt   DateTime?
+  location String?   @default("")
+
+  agenda String @default("")
+  notes  String @default("")
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([folderId])
+  @@index([startsAt])
 }

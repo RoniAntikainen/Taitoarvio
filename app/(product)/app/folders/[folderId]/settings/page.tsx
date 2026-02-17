@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { getFolderView } from "@/app/actions/folders";
-import { getFolderProfile, saveFolderProfileFromForm } from "@/app/actions/folder-sections";
+import {
+  getFolderProfile,
+  saveFolderProfileFromForm,
+} from "@/app/actions/folder-sections";
+import "./folder-settings.css";
 
 export default async function FolderSettingsPage({
   params,
@@ -14,46 +18,57 @@ export default async function FolderSettingsPage({
   const canEdit = role !== "viewer";
 
   return (
-    <div style={{ display: "grid", gap: 14, maxWidth: 820 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+    <div className="fs-page">
+      <div className="fs-header">
         <div>
-          <h1 style={{ margin: 0 }}>Kansion asetukset</h1>
-          <div style={{ fontSize: 12, opacity: 0.75 }}>{folder.name}</div>
+          <h1 className="fs-title">Kansion asetukset</h1>
+          <div className="fs-meta">{folder.name}</div>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+
+        <div className="fs-actions">
           <Link href={`/app/folders/${folderId}`}>Takaisin kansioon</Link>
           <Link href="/app/folders">Kaikki kansiot</Link>
         </div>
       </div>
 
-      <section style={{ padding: 12, borderRadius: 16, background: "rgba(0,0,0,.04)", display: "grid", gap: 10 }}>
-        <h2 style={{ margin: 0 }}>Profiili</h2>
+      <section className="fs-card">
+        <h2>Profiili</h2>
 
-        <form action={saveFolderProfileFromForm.bind(null, folderId)} style={{ display: "grid", gap: 10 }}>
-          <div style={{ display: "grid", gap: 8 }}>
-            <label style={{ fontSize: 12, opacity: 0.75 }}>Oppilaan nimi</label>
+        <form
+          action={saveFolderProfileFromForm.bind(null, folderId)}
+          className="fs-form"
+        >
+          <div className="fs-field">
+            <label className="fs-label">Oppilaan nimi</label>
             <input
               name="athleteName"
               defaultValue={profile.athleteName}
               disabled={!canEdit}
-              style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,.15)" }}
+              className="input"
             />
           </div>
 
-          <div style={{ display: "grid", gap: 8 }}>
-            <label style={{ fontSize: 12, opacity: 0.75 }}>Laji (vaihdettavissa vain asetuksissa)</label>
-            <select name="sportId" defaultValue={profile.sportId} disabled={!canEdit} style={{ padding: 10, borderRadius: 12 }}>
+          <div className="fs-field">
+            <label className="fs-label">
+              Laji (vaihdettavissa vain asetuksissa)
+            </label>
+            <select
+              name="sportId"
+              defaultValue={profile.sportId}
+              disabled={!canEdit}
+              className="input"
+            >
               <option value="football">Jalkapallo</option>
               <option value="dance">Tanssi</option>
             </select>
           </div>
 
           {canEdit ? (
-            <button type="submit" style={{ padding: "10px 12px", borderRadius: 12, width: "fit-content" }}>
+            <button type="submit" className="btn">
               Tallenna
             </button>
           ) : (
-            <div style={{ fontSize: 12, opacity: 0.75 }}>Sinulla on vain lukuoikeus.</div>
+            <div className="fs-muted">Sinulla on vain lukuoikeus.</div>
           )}
         </form>
       </section>

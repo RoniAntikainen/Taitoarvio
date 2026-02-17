@@ -1,10 +1,8 @@
 import Link from "next/link";
 import {
-  addMemberFromForm,
   getFolderView,
   leaveFolder,
   listFolderEvaluations,
-  removeMember,
 } from "@/app/actions/folders";
 import {
   getFolderProfile,
@@ -16,6 +14,12 @@ import {
 import { createFolderEvaluationFromForm } from "@/app/actions/folder-evaluations";
 import ResultsEditor from "@/components/folders/ResultsEditor";
 import UpcomingPicker from "@/components/folders/UpcomingPicker";
+import FolderAnalyticsCards from "@/components/folders/FolderAnalyticsCards";
+
+// ✅ lisätty (älä muuta nimeä)
+import MeetingsSection from "../[id]/MeetingsSection";
+
+import "./folder.css";
 
 function sportName(sportId: string) {
   if (sportId === "dance") return "Tanssi";
@@ -23,8 +27,15 @@ function sportName(sportId: string) {
 }
 
 function areasForSport(sportId: string) {
-  if (sportId === "dance") return ["Tekniikka", "Rytmi", "Esiintyminen", "Pari-/ryhmätyö", "Kestävyys"];
-  return ["Joukkuepelaaminen", "Tekniikka", "Peliasenne", "Taktinen ymmärrys", "Fyysisyys"];
+  if (sportId === "dance")
+    return ["Tekniikka", "Rytmi", "Esiintyminen", "Pari-/ryhmätyö", "Kestävyys"];
+  return [
+    "Joukkuepelaaminen",
+    "Tekniikka",
+    "Peliasenne",
+    "Taktinen ymmärrys",
+    "Fyysisyys",
+  ];
 }
 
 export default async function FolderDetailPage({
@@ -46,120 +57,187 @@ export default async function FolderDetailPage({
   const canEdit = role !== "viewer";
 
   return (
-    <div style={{ display: "grid", gap: 14, maxWidth: 980 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-        <div>
-          <h1 style={{ margin: 0 }}>{folder.name}</h1>
-          <div style={{ fontSize: 12, opacity: 0.75 }}>
-            Oppilas: {profile.athleteName || "—"} · Laji: {sportName(sportId)} · Rooli: {role}
+    <div className="fd-page">
+      {/* HEADER */}
+      <header className="fd-header">
+        <div className="fd-head">
+          <div className="fd-headTitle">
+            <h1 className="fd-title">{folder.name}</h1>
+            <div className="fd-meta">
+              <span>Oppilas: {profile.athleteName || "—"}</span>
+              <span className="fd-dot">·</span>
+              <span>Laji: {sportName(sportId)}</span>
+              <span className="fd-dot">·</span>
+              <span>Rooli: {role}</span>
+            </div>
+          </div>
+
+          <div className="fd-headRight">
+            <div className="fd-actions">
+              <Link className="btn btn--secondary" href="/app/folders">
+                Takaisin
+              </Link>
+              <Link
+                className="btn btn--secondary"
+                href={`/app/folders/${folderId}/settings`}
+              >
+                Asetukset
+              </Link>
+            </div>
+
+            {role !== "owner" && (
+              <form
+                className="fd-inline"
+                action={leaveFolder.bind(null, folderId)}
+              >
+                <button type="submit" className="btn btn--danger">
+                  Poistu kansiosta
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* QUICK ACTIONS (ei kilpaile CTA:n kanssa) */}
+      <section className="fd-toolbar" aria-label="Pikatoiminnot">
+        <button className="btn btn--ghost" disabled>
+          + Uusi muistiinpano
+        </button>
+        <button className="btn btn--ghost" disabled>
+          + Lisää tulos
+        </button>
+        <button className="btn btn--ghost" disabled>
+          + Tee arviointi
+        </button>
+        <button className="btn btn--ghost" disabled>
+          Jaa
+        </button>
+        <div className="fd-toolbarHint">
+          {canEdit
+            ? "Voit muokata tämän kansion tietoja."
+            : "Sinulla on vain lukuoikeus."}
+        </div>
+      </section>
+
+      {/* PLAN */}
+      <section className="fd-section">
+        <div className="fd-sectionHead">
+          <h2 className="fd-sectionTitle">Valmennussuunnitelma</h2>
+          <div className="fd-sectionRight">
+            <span className="fd-subtle">Vapaamuotoinen suunnitelma</span>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <Link href="/app/folders">Takaisin</Link>
-          <Link href={`/app/folders/${folderId}/settings`}>Asetukset</Link>
-          {role !== "owner" ? (
-            <form action={leaveFolder.bind(null, folderId)}>
-              <button type="submit" style={{ padding: "8px 10px", borderRadius: 12 }}>
-                Poistu
-              </button>
-            </form>
-          ) : null}
-        </div>
-      </div>
-
-      <section style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button type="button" style={{ padding: "10px 12px", borderRadius: 12 }} disabled>
-          + Uusi muistiinpano
-        </button>
-        <button type="button" style={{ padding: "10px 12px", borderRadius: 12 }} disabled>
-          + Lisää tulos
-        </button>
-        <button type="button" style={{ padding: "10px 12px", borderRadius: 12 }} disabled>
-          + Tee arviointi
-        </button>
-        <button type="button" style={{ padding: "10px 12px", borderRadius: 12 }} disabled>
-          Jaa
-        </button>
-      </section>
-
-      <section style={{ display: "grid", gap: 10 }}>
-        <h2 style={{ margin: 0 }}>Valmennussuunnitelma</h2>
-        <form action={saveSectionFromForm.bind(null, folderId, "plan")} style={{ display: "grid", gap: 8 }}>
+        <form
+          action={saveSectionFromForm.bind(null, folderId, "plan")}
+          className="fd-form"
+        >
           <textarea
             name="content"
-            rows={8}
+            rows={10}
             defaultValue={plan.content}
             placeholder="Kirjoita valmennussuunnitelma tähän..."
-            style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,.15)" }}
+            className="input"
             disabled={!canEdit}
           />
           <input type="hidden" name="title" value="Valmennussuunnitelma" />
-          {canEdit ? (
-            <button type="submit" style={{ padding: "10px 12px", borderRadius: 12, width: "fit-content" }}>
-              Tallenna
-            </button>
-          ) : null}
+          <div className="fd-formActions">
+            {canEdit && <button className="btn btn--primary">Tallenna</button>}
+          </div>
         </form>
       </section>
 
-      <section style={{ display: "grid", gap: 10 }}>
-        <h2 style={{ margin: 0 }}>Tulevat kilpailut / pelit</h2>
+      {/* UPCOMING */}
+      <section className="fd-section">
+        <div className="fd-sectionHead">
+          <h2 className="fd-sectionTitle">Tulevat kilpailut / pelit</h2>
+          <div className="fd-sectionRight">
+            <span className="fd-subtle">Valitse tapahtumat listasta</span>
+          </div>
+        </div>
 
-        <form action={saveUpcomingJsonFromForm.bind(null, folderId)} style={{ display: "grid", gap: 10 }}>
-          <UpcomingPicker sportId={sportId} initialJson={upcoming.content || ""} readOnly={!canEdit} />
+        <form
+          action={saveUpcomingJsonFromForm.bind(null, folderId)}
+          className="fd-form"
+        >
+          <UpcomingPicker
+            sportId={sportId}
+            initialJson={upcoming.content || ""}
+            readOnly={!canEdit}
+          />
 
-          {canEdit ? (
-            <button type="submit" style={{ padding: "10px 12px", borderRadius: 12, width: "fit-content" }}>
-              Tallenna tulevat
-            </button>
-          ) : null}
+          <div className="fd-formActions">
+            {canEdit && (
+              <button className="btn btn--primary">Tallenna tulevat</button>
+            )}
+          </div>
         </form>
       </section>
 
-      <section style={{ display: "grid", gap: 10 }}>
-        <h2 style={{ margin: 0 }}>Tulokset</h2>
-        <form action={saveResultsJsonFromForm.bind(null, folderId)} style={{ display: "grid", gap: 10 }}>
-          <ResultsEditor sportId={sportId as any} initialJson={results.content || "[]"} readOnly={!canEdit} />
-          {canEdit ? (
-            <button type="submit" style={{ padding: "10px 12px", borderRadius: 12, width: "fit-content" }}>
-              Tallenna tulokset
-            </button>
-          ) : null}
+      {/* RESULTS */}
+      <section className="fd-section">
+        <div className="fd-sectionHead">
+          <h2 className="fd-sectionTitle">Tulokset</h2>
+          <div className="fd-sectionRight">
+            <span className="fd-subtle">Lisää rivejä ja tallenna</span>
+          </div>
+        </div>
+
+        <form
+          action={saveResultsJsonFromForm.bind(null, folderId)}
+          className="fd-form"
+        >
+          <ResultsEditor
+            sportId={sportId as any}
+            initialJson={results.content || "[]"}
+            readOnly={!canEdit}
+          />
+          <div className="fd-formActions">
+            {canEdit && (
+              <button className="btn btn--primary">Tallenna tulokset</button>
+            )}
+          </div>
         </form>
       </section>
 
-      <section style={{ display: "grid", gap: 10 }}>
-        <h2 style={{ margin: 0 }}>Oppilaan arviointi (1–5, “—” = arvioimaton)</h2>
+      {/* EVALUATION */}
+      <section className="fd-section">
+        <div className="fd-sectionHead">
+          <h2 className="fd-sectionTitle">Oppilaan arviointi</h2>
+          <div className="fd-sectionRight">
+            <span className="fd-subtle">1–5, “—” = arvioimaton</span>
+          </div>
+        </div>
 
         {canEdit ? (
           <form
             action={createFolderEvaluationFromForm.bind(null, folderId)}
-            style={{ display: "grid", gap: 10, padding: 12, borderRadius: 16, background: "rgba(0,0,0,.04)" }}
+            className="fd-card fd-form"
           >
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className="fd-row">
               <input
                 name="subject"
                 defaultValue={profile.athleteName || "Oppilas"}
                 placeholder="Oppilaan nimi"
-                style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,.15)", minWidth: 220 }}
+                className="input"
               />
               <input
                 name="evaluator"
                 placeholder="Arvioija (valinnainen)"
-                style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,.15)", minWidth: 220 }}
+                className="input"
               />
               <input type="hidden" name="sportId" value={sportId} />
             </div>
 
-            <div style={{ display: "grid", gap: 8 }}>
+            <div className="fd-areas">
               {areasForSport(sportId).map((a) => (
-                <div key={a} style={{ display: "grid", gridTemplateColumns: "1fr 140px", gap: 10, alignItems: "center" }}>
-                  <div style={{ fontWeight: 700 }}>{a}</div>
+                <div key={a} className="fd-area">
+                  <div className="fd-area-label">{a}</div>
                   <select
                     name={`score:${a}`}
                     defaultValue="unrated"
-                    style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,.15)" }}
+                    className="input"
                   >
                     <option value="unrated">—</option>
                     <option value="1">1</option>
@@ -176,96 +254,68 @@ export default async function FolderDetailPage({
               name="notes"
               rows={4}
               placeholder="Lisähuomiot"
-              style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,.15)" }}
+              className="input"
             />
-
-            <button type="submit" style={{ padding: "10px 12px", borderRadius: 12, width: "fit-content" }}>
-              Tallenna arviointi
-            </button>
+            <div className="fd-formActions">
+              <button className="btn btn--primary">Tallenna arviointi</button>
+            </div>
           </form>
         ) : (
-          <div style={{ fontSize: 12, opacity: 0.75 }}>Sinulla on vain lukuoikeus.</div>
+          <div className="fd-muted">Sinulla on vain lukuoikeus.</div>
         )}
 
+        <div className="fd-divider" />
+
         {evaluations.length === 0 ? (
-          <div style={{ opacity: 0.7 }}>Ei arviointeja vielä.</div>
+          <div className="fd-muted">Ei arviointeja vielä.</div>
         ) : (
-          <div style={{ display: "grid", gap: 10 }}>
+          <div className="fd-list">
             {evaluations.map((e: any) => (
-              <div key={e.id} style={{ padding: 12, borderRadius: 16, background: "rgba(0,0,0,.04)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                  <div style={{ fontWeight: 800 }}>{e.subject}</div>
-                  <div style={{ fontSize: 12, opacity: 0.75 }}>{new Date(e.createdAt).toLocaleString("fi-FI")}</div>
+              <article key={e.id} className="fd-card fd-item">
+                <div className="fd-itemHead">
+                  <div className="fd-itemTitle">
+                    <div className="fd-strong">{e.subject}</div>
+                    <div className="fd-muted">
+                      {new Date(e.createdAt).toLocaleString("fi-FI")}
+                    </div>
+                  </div>
+                  <div className="fd-muted">
+                    {e.sportLabel}
+                    {e.evaluator ? ` · ${e.evaluator}` : ""}
+                  </div>
                 </div>
 
-                <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>
-                  {e.sportLabel} · {e.evaluator}
-                </div>
-
-                {e.data?.scores ? (
-                  <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
+                {e.data?.scores && (
+                  <div className="fd-scores">
                     {Object.entries(e.data.scores).map(([k, v]) => (
-                      <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                        <div>{k}</div>
-                        <div style={{ fontWeight: 800 }}>{String(v)}</div>
+                      <div key={k} className="fd-score">
+                        <div className="fd-scoreKey">{k}</div>
+                        <div className="fd-scoreVal">{String(v)}</div>
                       </div>
                     ))}
                   </div>
-                ) : null}
+                )}
 
-                {e.data?.notes ? <div style={{ marginTop: 10, whiteSpace: "pre-wrap" }}>{e.data.notes}</div> : null}
-              </div>
+                {e.data?.notes && <div className="fd-pre">{e.data.notes}</div>}
+              </article>
             ))}
           </div>
         )}
       </section>
 
-      {role === "owner" ? (
-        <section style={{ display: "grid", gap: 10 }}>
-          <h2 style={{ margin: 0 }}>Jaa kansio</h2>
+      {/* ✅ MEETINGS (lisätty pohjalle, ei uusia CSS-luokkia) */}
+      <section className="fd-section">
+        <div className="fd-sectionHead">
+          <h2 className="fd-sectionTitle">Tapaamiset</h2>
+          <div className="fd-sectionRight">
+            <Link className="btn btn--secondary" href="/app/calendar">
+              Avaa kalenteri
+            </Link>
+          </div>
+        </div>
 
-          <form action={addMemberFromForm.bind(null, folderId)} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input
-              name="email"
-              placeholder="käyttäjä@domain.com"
-              style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,.15)" }}
-            />
-            <select name="role" defaultValue="viewer" style={{ padding: 10, borderRadius: 12 }}>
-              <option value="viewer">viewer</option>
-              <option value="editor">editor</option>
-            </select>
-            <button type="submit" style={{ padding: "10px 12px", borderRadius: 12 }}>
-              Lisää
-            </button>
-          </form>
-
-          {"members" in folder && Array.isArray((folder as any).members) ? (
-            <div style={{ display: "grid", gap: 8 }}>
-              {(folder as any).members.map((m: any) => (
-                <div
-                  key={m.userEmail}
-                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 700 }}>{m.userEmail}</div>
-                    <div style={{ fontSize: 12, opacity: 0.75 }}>
-                      rooli: {m.role} · lisätty: {new Date(m.createdAt).toLocaleString("fi-FI")}
-                    </div>
-                  </div>
-
-                  {m.userEmail !== folder.ownerId ? (
-                    <form action={removeMember.bind(null, folderId, m.userEmail)}>
-                      <button type="submit" style={{ padding: "8px 10px", borderRadius: 12 }}>
-                        Poista
-                      </button>
-                    </form>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </section>
-      ) : null}
+        <MeetingsSection folderId={folderId} role={role} />
+      </section>
     </div>
   );
 }

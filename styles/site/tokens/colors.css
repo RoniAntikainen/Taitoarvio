@@ -1,128 +1,124 @@
 /* =========================================
-   BeatSport — Modern palette (Light + Dark)
-   - Neutraalit: moderni slate/ink, EI lavender/sinertävä page-bg
-   - Pääväri: sininen (deep, premium)
-   - Automaattinen teema: prefers-color-scheme
+   BeatSport — Modern Blue System
+   - Ei turkoosia
+   - Ei default SaaS -sinistä
+   - Syvempi cobalt / ink blue
+   - Neutraalit oikeasti neutraalit (ei sinertävä gray)
    ========================================= */
 
-/* ============ LIGHT THEME (default) ============ */
+
+/* ======================================================
+   LIGHT THEME (default)
+   ====================================================== */
+
 :root {
   color-scheme: light dark;
 
-  /* ---------- Perus ---------- */
-  --color-black: #0b1020;
+  /* Core */
+  --color-black: #0b0c0f;
   --color-white: #ffffff;
 
-  /* ---------- Neutraalit (modern slate) ----------
-     Tavoite: valkoinen/harmaa pohja, ei sinertävää "page wash" */
-  --color-gray-50:  #f7f8fb; /* Page BG */
-  --color-gray-100: #f1f3f8; /* Alt BG / sections */
-  --color-gray-200: #e6eaf2; /* Light border surfaces */
-  --color-gray-300: #d6dceb; /* Dividers */
-  --color-gray-400: #a9b3c7; /* Placeholder/quiet icons */
-  --color-gray-500: #7f8aa3; /* Meta text */
-  --color-gray-600: #5f6b86; /* Muted text */
-  --color-gray-700: #3f4a63; /* Strong text */
-  --color-gray-800: #262f44; /* Headings */
-  --color-gray-900: #111827; /* Primary text */
+  /* Neutral scale (warm-neutral, ei sairaala) */
+  --color-gray-50:  #fafaf9;
+  --color-gray-100: #f3f3f1;
+  --color-gray-200: #e6e6e2;
+  --color-gray-300: #d6d6d0;
+  --color-gray-400: #a8a8a0;
+  --color-gray-500: #7a7a72;
+  --color-gray-600: #5c5c55;
+  --color-gray-700: #40403c;
+  --color-gray-800: #262624;
+  --color-gray-900: #151515;
 
-  /* ---------- Brändi (sininen, premium) ----------
-     Vähemmän "neon", enemmän "deep blue" */
-  --color-primary:        #1f5eff;
-  --color-primary-hover:  #1a4fe0;
-  --color-primary-active: #163fba;
+  /* Primary – Modern cobalt (ei default sininen) */
+  --color-primary:        #1e3a8a;  /* deep cobalt */
+  --color-primary-hover:  #1d357f;
+  --color-primary-active: #172c68;
 
-  /* ---------- Status ---------- */
-  --color-success: #16a34a;
-  --color-warning: #f59e0b;
-  --color-danger:  #ef4444;
+  /* Subtle brand tint (optional surfaces) */
+  --color-primary-soft:   #e8ecfb;
 
-  /* ---------- Semanttiset UI-tokenit ---------- */
-  --color-bg:            var(--color-gray-50);   /* body tausta */
-  --color-surface:       var(--color-white);     /* header/kortit/modaalit */
-  --color-surface-alt:   var(--color-gray-100);  /* section-vaihtelu / paneelit */
+  /* Status */
+  --color-success: #15803d;
+  --color-warning: #d97706;
+  --color-danger:  #dc2626;
 
-  --color-text:          var(--color-gray-900);
-  --color-text-strong:   var(--color-gray-900);
-  --color-text-muted:    var(--color-gray-600);
-  --color-text-faint:    var(--color-gray-500);
+  /* Semantic */
+  --color-bg:          var(--color-gray-50);
+  --color-surface:     var(--color-white);
+  --color-surface-alt: var(--color-gray-100);
 
-  /* Rajat ja jakoviivat: moderni, vähemmän “sinistä sumua” */
-  --color-border:        rgba(17, 24, 39, 0.12);
-  --color-divider:       rgba(17, 24, 39, 0.08);
+  --color-text:        var(--color-gray-900);
+  --color-text-strong: var(--color-gray-900);
+  --color-text-muted:  var(--color-gray-600);
+  --color-text-faint:  var(--color-gray-500);
 
-  --color-link:          var(--color-primary);
-  --color-link-hover:    var(--color-primary-hover);
+  --color-border:  rgba(21,21,21,0.12);
+  --color-divider: rgba(21,21,21,0.08);
 
-  /* Fokus & varjot */
-  --focus-ring:          rgba(31, 94, 255, 0.28);
-  --shadow-color:        rgba(11, 16, 32, 0.14);
+  --color-link:       var(--color-primary);
+  --color-link-hover: var(--color-primary-hover);
 
-  /* ---------- Hero (valinnainen, hillitty) ----------
-     Tärkeää: paljon vähemmän sinistä “peittoa” */
-  --gradient-brand: radial-gradient(1100px 520px at 65% 20%,
-    rgba(31, 94, 255, 0.22) 0%,
-    rgba(31, 94, 255, 0.10) 34%,
-    rgba(31, 94, 255, 0.00) 68%
-  );
+  --focus-ring: rgba(30, 58, 138, 0.28);
+
+  --shadow-color: rgba(10, 10, 15, 0.15);
 }
 
 
-/* ============ DARK THEME (auto) ============ */
+/* ======================================================
+   DARK THEME
+   ====================================================== */
+
 @media (prefers-color-scheme: dark) {
   :root {
-    /* ---------- Perus ---------- */
-    --color-black: #070a12;
+    color-scheme: dark;
+
+    /* Core */
+    --color-black: #050507;
     --color-white: #ffffff;
 
-    /* ---------- Neutraalit (inky slate) ----------
-       Tavoite: ei “sininen yö”, vaan neutraali tummasävy */
-    --color-gray-50:  #0b1020; /* Page BG */
-    --color-gray-100: #0f172a; /* Alt BG / sections */
-    --color-gray-200: #121c33; /* Surface (cards/header) */
-    --color-gray-300: #172443; /* Elevated surface / hover */
-    --color-gray-400: #253354; /* Border base */
-    --color-gray-500: #6b7693; /* Faint text */
-    --color-gray-600: #9aa4bd; /* Muted text */
-    --color-gray-700: #c2cbe0; /* Body text */
-    --color-gray-800: #e3e8f5; /* Headings */
-    --color-gray-900: #f6f8ff; /* Strongest text */
+    /* Neutral scale (charcoal, EI navy) */
+    --color-gray-50:  #0c0c10;   /* page bg */
+    --color-gray-100: #131318;
+    --color-gray-200: #1a1a22;   /* surface */
+    --color-gray-300: #22222c;
+    --color-gray-400: #2d2d3a;
+    --color-gray-500: #7c7c8a;
+    --color-gray-600: #a5a5b2;
+    --color-gray-700: #d0d0da;
+    --color-gray-800: #ececf2;
+    --color-gray-900: #fafafa;
 
-    /* ---------- Brändi (sininen pysyy) ----------
-       Tummassa hieman kirkkaampi hover */
-    --color-primary:        #3b73ff;
-    --color-primary-hover:  #5a8aff;
-    --color-primary-active: #2b63ff;
+    /* Primary – hieman kirkkaampi mutta ei neon */
+    --color-primary:        #3b82f6;  /* controlled modern blue */
+    --color-primary-hover:  #4f8df7;
+    --color-primary-active: #2563eb;
 
-    /* ---------- Status ---------- */
+    --color-primary-soft:   rgba(59,130,246,0.15);
+
+    /* Status */
     --color-success: #22c55e;
     --color-warning: #fbbf24;
     --color-danger:  #fb7185;
 
-    /* ---------- Semanttiset UI-tokenit ---------- */
-    --color-bg:            var(--color-gray-50);
-    --color-surface:       var(--color-gray-200);
-    --color-surface-alt:   var(--color-gray-100);
+    /* Semantic */
+    --color-bg:          var(--color-gray-50);
+    --color-surface:     var(--color-gray-200);
+    --color-surface-alt: var(--color-gray-100);
 
-    --color-text:          var(--color-gray-700);
-    --color-text-strong:   var(--color-gray-900);
-    --color-text-muted:    var(--color-gray-600);
-    --color-text-faint:    var(--color-gray-500);
+    --color-text:        var(--color-gray-700);
+    --color-text-strong: var(--color-gray-900);
+    --color-text-muted:  var(--color-gray-600);
+    --color-text-faint:  var(--color-gray-500);
 
-    --color-border:        rgba(255, 255, 255, 0.10);
-    --color-divider:       rgba(255, 255, 255, 0.07);
+    --color-border:  rgba(255,255,255,0.10);
+    --color-divider: rgba(255,255,255,0.07);
 
-    --color-link:          var(--color-primary);
-    --color-link-hover:    var(--color-primary-hover);
+    --color-link:       var(--color-primary);
+    --color-link-hover: var(--color-primary-hover);
 
-    --focus-ring:          rgba(59, 115, 255, 0.40);
-    --shadow-color:        rgba(0, 0, 0, 0.45);
+    --focus-ring: rgba(59,130,246,0.40);
 
-    /* Hero (hillitty myös tummassa) */
-    --gradient-brand: radial-gradient(1100px 520px at 65% 20%,
-      rgba(59, 115, 255, 0.20) 0%,
-      rgba(59, 115, 255, 0.08) 34%,
-      rgba(59, 115, 255, 0.00) 70%
-    );
+    --shadow-color: rgba(0,0,0,0.55);
   }
 }

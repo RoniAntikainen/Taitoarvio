@@ -1,19 +1,18 @@
+// app/(product)/app/layout.tsx
 import AppShell from "@/components/shell/AppShell";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 import "@/styles/app/globals.css";
 
 export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function ProductLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const session = await auth();
-  if (!session) redirect("/api/auth/signin?callbackUrl=/app");
-
-  return <AppShell>{children}</AppShell>;
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // AppShell aina -> navigointi aina näkyy kaikkialla /app:ssa
+  return (
+    <html lang="fi">
+      <body data-scope="app">
+        <AppShell>{children}</AppShell>
+      </body>
+    </html>
+  );
 }

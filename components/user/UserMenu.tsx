@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Portal from "@/components/ui/Portal";
+import { signOut } from "next-auth/react";
 
 type User = {
   name?: string | null;
@@ -17,140 +18,115 @@ export default function UserMenu({ user }: { user: User }) {
   const [dragY, setDragY] = useState(0);
   const [dragging, setDragging] = useState(false);
   const startYRef = useRef(0);
-  const pointerIdRef = useRef<number | null>(null);
 
-  // lukitse taustan scroll kun sheet auki
+  // refs
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     if (!open) return;
-    const prev = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = "hidden";
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("keydown", onKey);
+
     return () => {
-      document.documentElement.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
     };
   }, [open]);
 
-  // reset kun avataan
-  useEffect(() => {
-    if (!open) return;
-    setDragY(0);
-    setDragging(false);
-    pointerIdRef.current = null;
-  }, [open]);
-
-  const close = () => {
-    setOpen(false);
-  };
-
-  const onHandlePointerDown = (e: React.PointerEvent) => {
-    // vain primary pointer
-    if (e.button !== 0 && e.pointerType !== "touch") return;
-
+  const onPointerDown = (e: React.PointerEvent) => {
     setDragging(true);
     startYRef.current = e.clientY;
-    pointerIdRef.current = e.pointerId;
-
-    // ota pointer kiinni handleen
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setDragY(0);
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
-  const onHandlePointerMove = (e: React.PointerEvent) => {
+  const onPointerMove = (e: React.PointerEvent) => {
     if (!dragging) return;
-    if (pointerIdRef.current !== e.pointerId) return;
-
     const delta = e.clientY - startYRef.current;
-    // vedetään vain alaspäin
-    setDragY(delta > 0 ? delta : 0);
+    setDragY(Math.max(0, delta));
   };
 
-  const onHandlePointerUp = (e: React.PointerEvent) => {
-    if (pointerIdRef.current !== e.pointerId) return;
-
+  const onPointerUp = () => {
+    if (!dragging) return;
     setDragging(false);
 
-    // jos vedetty tarpeeksi alas → sulje
-    if (dragY > 120) {
-      close();
-      return;
+    if (dragY > 140) {
+      setOpen(false);
     }
-
-    // muuten snap takaisin ylös
     setDragY(0);
   };
+
+  const transform = dragY ? `translateY(${dragY}px)` : undefined;
 
   return (
     <>
-      {/* AVATAR / TRIGGER */}
       <button
-        className="userTrigger"
+        className="userChip"
+        type="button"
         onClick={() => setOpen(true)}
-        aria-label="Käyttäjäasetukset"
+        aria-haspopup="dialog"
+        aria-expanded={open}
       >
         {user.image ? (
           <Image
             src={user.image}
-            alt="Profiilikuva"
-            width={32}
-            height={32}
-            className="userAvatar"
+            alt={user.name ?? "Käyttäjä"}
+            width={28}
+            height={28}
+            className="userChip__avatar"
           />
         ) : (
-          <span className="userAvatarFallback">👤</span>
+          <span className="userChip__avatarFallback" aria-hidden="true">
+            {user.name?.slice(0, 1)?.toUpperCase() ?? "U"}
+          </span>
         )}
+
+        <span className="userChip__name">{user.name ?? "Käyttäjä"}</span>
       </button>
 
-      {/* OVERLAY BODYSSA */}
       {open && (
         <Portal>
-          <div className="sheetOverlay" onPointerDown={close}>
+          <div className="sheetOverlay" onClick={() => setOpen(false)} />
+
+          <div
+            ref={sheetRef}
+            className="sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Käyttäjävalikko"
+            style={{ transform }}
+          >
             <div
-              className="sheet"
-              role="dialog"
-              aria-modal="true"
-              onPointerDown={(e) => e.stopPropagation()}
-              style={{
-                transform: `translateY(${dragY}px)`,
-                transition: dragging ? "none" : "transform 180ms ease",
-              }}
-            >
-              {/* DRAG HANDLE */}
-              <div
-                className="sheetHandle"
-                onPointerDown={onHandlePointerDown}
-                onPointerMove={onHandlePointerMove}
-                onPointerUp={onHandlePointerUp}
-                onPointerCancel={onHandlePointerUp}
-              >
-                <div className="sheetHandleBar" />
+              className="sheetHandle"
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+            />
+
+            <div className="sheetHeader">
+              <div className="sheetTitle">{user.name ?? "Käyttäjä"}</div>
+              <div className="sheetSubtitle">{user.email ?? ""}</div>
+            </div>
+
+            <div className="sheetBody">
+              <div className="sheetGroup">
+                <button className="sheetBtn">Profiilin asetukset</button>
+                <button className="sheetBtn">Teema</button>
+
+                <button
+                  className="sheetBtn"
+                  type="button"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  Kirjaudu ulos
+                </button>
               </div>
 
-              <div className="sheetContent">
-                <div className="sheetHeader">
-                  {user.image && (
-                    <Image
-                      src={user.image}
-                      alt=""
-                      width={48}
-                      height={48}
-                      className="userAvatarLg"
-                    />
-                  )}
-                  <div>
-                    <div className="sheetName">{user.name}</div>
-                    <div className="sheetEmail">{user.email}</div>
-                  </div>
-                </div>
-
-                <div className="sheetActions">
-                  <button className="sheetBtn">Profiilin asetukset</button>
-                  <button className="sheetBtn">Teema</button>
-                  <a className="sheetBtn" href="/api/auth/signout">
-                    Kirjaudu ulos
-                  </a>
-                </div>
-
-                <div className="sheetHint">
-                  Vedä alas sulkeaksesi tai napauta taustaa.
-                </div>
+              <div className="sheetHint">
+                Vedä alas sulkeaksesi tai napauta taustaa
               </div>
             </div>
           </div>
