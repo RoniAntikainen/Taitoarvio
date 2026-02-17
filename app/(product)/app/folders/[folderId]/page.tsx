@@ -46,8 +46,13 @@ export default async function FolderDetailPage({
   const { folderId } = await params;
 
   const { folder, role } = await getFolderView(folderId);
+
+  // getFolderProfile() palauttaa nykyään Folder-olion,
+  // joten sportId/athleteName voi puuttua -> demo-safe fallback.
   const profile = await getFolderProfile(folderId);
-  const sportId = profile.sportId;
+
+  const sportId: string = (profile as any)?.sportId ?? "dance";
+  const athleteName: string = (profile as any)?.athleteName ?? "—";
 
   const plan = await getSection(folderId, "plan");
   const upcoming = await getSection(folderId, "upcoming");
@@ -64,7 +69,7 @@ export default async function FolderDetailPage({
           <div className="fd-headTitle">
             <h1 className="fd-title">{folder.name}</h1>
             <div className="fd-meta">
-              <span>Oppilas: {profile.athleteName || "—"}</span>
+              <span>Oppilas: {athleteName}</span>
               <span className="fd-dot">·</span>
               <span>Laji: {sportName(sportId)}</span>
               <span className="fd-dot">·</span>
@@ -218,7 +223,7 @@ export default async function FolderDetailPage({
             <div className="fd-row">
               <input
                 name="subject"
-                defaultValue={profile.athleteName || "Oppilas"}
+                defaultValue={athleteName !== "—" ? athleteName : "Oppilas"}
                 placeholder="Oppilaan nimi"
                 className="input"
               />
