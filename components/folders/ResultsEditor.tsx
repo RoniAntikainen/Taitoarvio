@@ -1,207 +1,130 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type AnyObj = Record<string, any>;
+type SportId = "football" | "dance";
 
-function safeParseJson(input: unknown): any {
-  if (input == null) return null;
-  if (typeof input === "string") {
-    const s = input.trim();
-    if (!s) return null;
-    try {
-      return JSON.parse(s);
-    } catch {
-      return { text: s };
-    }
-  }
-  return input;
-}
+type Props = {
+  sportId: SportId;
+  initialJson?: string;
+  readOnly?: boolean;
+  name?: string; // hidden input name (default "json")
+};
 
-function normalizeRows(raw: unknown): any[] {
-  const v = safeParseJson(raw);
+type ResultRow = {
+  date?: string;
+  title?: string;
+  place?: string;
+  notes?: string;
+};
 
-  // suoraan array
-  if (Array.isArray(v)) return v;
-
-  // muodot: { rows: [...] } / { items: [...] } / { results: [...] }
-  if (v && typeof v === "object") {
-    const o = v as AnyObj;
-    if (Array.isArray(o.rows)) return o.rows;
-    if (Array.isArray(o.items)) return o.items;
-    if (Array.isArray(o.results)) return o.results;
-
-    // joskus tallennettu muodossa { text: "..." } -> ei rivejä
+function safeParseArray(s: string | undefined): ResultRow[] {
+  const t = String(s ?? "").trim();
+  if (!t) return [];
+  try {
+    const j = JSON.parse(t);
+    return Array.isArray(j) ? (j as ResultRow[]) : [];
+  } catch {
     return [];
   }
-
-  // null / string / muu -> ei rivejä
-  return [];
 }
 
-function stringifyResults(rows: any[]) {
-  // pidetään tallennusformaatti yksiselitteisenä jatkossa
-  return JSON.stringify({ rows });
-}
+export default function ResultsEditor({ sportId, initialJson, readOnly = false, name = "json" }: Props) {
+  const [rows, setRows] = useState<ResultRow[]>(() => safeParseArray(initialJson));
 
-export default function ResultsEditor(props: {
-  folderId: string;
-  sportId: "football" | "dance";
-  // vanha data voi tulla monessa muodossa
-  initialJson?: any;
-  onSave?: (json: string) => void;
-}) {
-  const { folderId, sportId, initialJson, onSave } = props;
+  useEffect(() => {
+    setRows(safeParseArray(initialJson));
+  }, [initialJson]);
 
-  const initialRows = useMemo(() => normalizeRows(initialJson), [initialJson]);
-
-  const [rows, setRows] = useState<any[]>(initialRows);
-
-  function addRow() {
-    // tee tyhjä rivi – pidetään sport-specific kentät ennallaan jos sulla oli ne
-    if (sportId === "dance") {
-      setRows((prev) => [
-        ...prev,
-        {
-          date: "",
-          topic: "",
-          notes: "",
-          rating: "",
-        },
-      ]);
-      return;
+  const json = useMemo(() => {
+    try {
+      return JSON.stringify(rows);
+    } catch {
+      return "[]";
     }
+  }, [rows]);
 
-    setRows((prev) => [
-      ...prev,
-      {
-        date: "",
-        topic: "",
-        notes: "",
-        score: "",
-      },
-    ]);
+  const labels =
+    sportId === "dance"
+      ? { title: "Kilpailu", place: "Sijoitus" }
+      : { title: "Peli/Tapahtuma", place: "Tulos" };
+
+  function updateRow(idx: number, patch: Partial<ResultRow>) {
+    setRows((prev) => {
+      const copy = prev.slice();
+      copy[idx] = { ...copy[idx], ...patch };
+      return copy;
+    });
   }
 
-  function updateRow(idx: number, patch: AnyObj) {
-    setRows((prev) => prev.map((r, i) => (i === idx ? { ...(r ?? {}), ...patch } : r)));
+  function addRow() {
+    setRows((prev) => [...prev, { date: "", title: "", place: "", notes: "" }]);
   }
 
   function removeRow(idx: number) {
     setRows((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  function handleSave() {
-    const json = stringifyResults(rows);
-    onSave?.(json);
-  }
-
   return (
-    <div className="reWrap">
-      <div className="reHeader">
-        <div className="reTitle">Tulokset</div>
-
-        <div className="reActions">
-          <button type="button" onClick={addRow}>
-            Lisää rivi
-          </button>
-          <button type="button" onClick={handleSave}>
-            Tallenna
-          </button>
-        </div>
-      </div>
+    <div>
+      <input type="hidden" name={name} value={json} />
 
       {rows.length === 0 ? (
-        <div className="reEmpty">Ei rivejä vielä. Lisää ensimmäinen.</div>
+        <div className="fd-muted">Ei tuloksia vielä.</div>
       ) : (
-        <div className="reList">
-          {rows.map((row: any, idx: number) => (
-            <div key={idx} className="reCard">
-              {sportId === "dance" ? (
-                <>
-                  <div className="reRow">
-                    <label>Päivä</label>
-                    <input
-                      value={String(row?.date ?? "")}
-                      onChange={(e) => updateRow(idx, { date: e.target.value })}
-                      placeholder="2026-02-16"
-                    />
-                  </div>
-
-                  <div className="reRow">
-                    <label>Teema</label>
-                    <input
-                      value={String(row?.topic ?? "")}
-                      onChange={(e) => updateRow(idx, { topic: e.target.value })}
-                      placeholder="Esim. perusasento / rytmi"
-                    />
-                  </div>
-
-                  <div className="reRow">
-                    <label>Muistiinpanot</label>
-                    <textarea
-                      value={String(row?.notes ?? "")}
-                      onChange={(e) => updateRow(idx, { notes: e.target.value })}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="reRow">
-                    <label>Arvio</label>
-                    <input
-                      value={String(row?.rating ?? "")}
-                      onChange={(e) => updateRow(idx, { rating: e.target.value })}
-                      placeholder="0–10"
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="reRow">
-                    <label>Päivä</label>
-                    <input
-                      value={String(row?.date ?? "")}
-                      onChange={(e) => updateRow(idx, { date: e.target.value })}
-                      placeholder="2026-02-16"
-                    />
-                  </div>
-
-                  <div className="reRow">
-                    <label>Teema</label>
-                    <input
-                      value={String(row?.topic ?? "")}
-                      onChange={(e) => updateRow(idx, { topic: e.target.value })}
-                      placeholder="Esim. syötöt / laukaukset"
-                    />
-                  </div>
-
-                  <div className="reRow">
-                    <label>Muistiinpanot</label>
-                    <textarea
-                      value={String(row?.notes ?? "")}
-                      onChange={(e) => updateRow(idx, { notes: e.target.value })}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="reRow">
-                    <label>Pisteet</label>
-                    <input
-                      value={String(row?.score ?? "")}
-                      onChange={(e) => updateRow(idx, { score: e.target.value })}
-                      placeholder="0–10"
-                    />
-                  </div>
-                </>
-              )}
-
-              <div className="reCardActions">
-                <button type="button" onClick={() => removeRow(idx)}>
-                  Poista
-                </button>
+        <div className="fd-list" style={{ gap: 12 }}>
+          {rows.map((r, i) => (
+            <div key={i} className="fd-card" style={{ padding: 12 }}>
+              <div className="fd-row" style={{ marginBottom: 8 }}>
+                <input
+                  className="input"
+                  type="date"
+                  value={r.date ?? ""}
+                  onChange={(e) => updateRow(i, { date: e.target.value })}
+                  disabled={readOnly}
+                />
+                <input
+                  className="input"
+                  value={r.title ?? ""}
+                  onChange={(e) => updateRow(i, { title: e.target.value })}
+                  placeholder={labels.title}
+                  disabled={readOnly}
+                />
+                <input
+                  className="input"
+                  value={r.place ?? ""}
+                  onChange={(e) => updateRow(i, { place: e.target.value })}
+                  placeholder={labels.place}
+                  disabled={readOnly}
+                />
               </div>
+
+              <textarea
+                className="input"
+                rows={2}
+                value={r.notes ?? ""}
+                onChange={(e) => updateRow(i, { notes: e.target.value })}
+                placeholder="Huomiot"
+                disabled={readOnly}
+              />
+
+              {!readOnly && (
+                <div className="fd-formActions">
+                  <button type="button" className="btn btn--danger" onClick={() => removeRow(i)}>
+                    Poista rivi
+                  </button>
+                </div>
+              )}
             </div>
           ))}
+        </div>
+      )}
+
+      {!readOnly && (
+        <div className="fd-formActions">
+          <button type="button" className="btn btn--secondary" onClick={addRow}>
+            + Lisää rivi
+          </button>
         </div>
       )}
     </div>

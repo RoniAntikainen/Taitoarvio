@@ -158,7 +158,8 @@ export default function UpcomingPicker({
 
   return (
     <div className="upcoming">
-      <input type="hidden" name="upcomingJson" value={payload} />
+      <input type="hidden" name="json" value={payload} />
+
 
       <div className="upcoming-selected">
         {content.selected.length === 0 ? (

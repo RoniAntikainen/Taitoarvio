@@ -11,8 +11,8 @@ type CreateEvaluationInput = {
   folderId: string;
   subject?: string;
   evaluator?: string;
-  sportLabel?: string; // schema: pakollinen string, mutta syötteessä optional -> default ""
-  data: any; // JSON object tai string
+  sportLabel?: string;
+  data: any;
 };
 
 function toJsonString(v: any) {
@@ -24,6 +24,17 @@ function toJsonString(v: any) {
   }
 }
 
+function parseJsonString<T>(s: any, fallback: T): T {
+  if (typeof s !== "string") return fallback;
+  const t = s.trim();
+  if (!t) return fallback;
+  try {
+    return (JSON.parse(t) ?? fallback) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function createEvaluation(input: CreateEvaluationInput) {
   const session = await auth();
   const me = requireEmail(session);
@@ -31,7 +42,6 @@ export async function createEvaluation(input: CreateEvaluationInput) {
   const folderId = String(input.folderId);
   await requireFolderAccess(folderId, me, "editor");
 
-  // ✅ FREE-tier limit
   const ent = getEntitlement(session);
   await assertEvaluationLimit(folderId, ent.status);
 
@@ -40,7 +50,7 @@ export async function createEvaluation(input: CreateEvaluationInput) {
       folderId,
       subject: String(input.subject ?? "").trim() || "Arviointi",
       evaluator: String(input.evaluator ?? me).trim() || me,
-      sportLabel: String(input.sportLabel ?? "").trim(), // ✅ ei null
+      sportLabel: String(input.sportLabel ?? "").trim(),
       data: toJsonString(input.data),
     },
     select: { id: true },
@@ -69,18 +79,9 @@ export async function updateEvaluation(
   await prisma.evaluation.update({
     where: { id: current.id },
     data: {
-      subject:
-        patch.subject !== undefined
-          ? String(patch.subject).trim() || "Arviointi"
-          : undefined,
-      evaluator:
-        patch.evaluator !== undefined
-          ? String(patch.evaluator).trim() || me
-          : undefined,
-      sportLabel:
-        patch.sportLabel !== undefined
-          ? String(patch.sportLabel ?? "").trim()
-          : undefined,
+      subject: patch.subject !== undefined ? String(patch.subject).trim() || "Arviointi" : undefined,
+      evaluator: patch.evaluator !== undefined ? String(patch.evaluator).trim() || me : undefined,
+      sportLabel: patch.sportLabel !== undefined ? String(patch.sportLabel ?? "").trim() : undefined,
       data: patch.data !== undefined ? toJsonString(patch.data) : undefined,
     },
   });
@@ -101,7 +102,6 @@ export async function deleteEvaluation(evaluationId: string) {
   if (!current) return { ok: true };
 
   await requireFolderAccess(current.folderId, me, "editor");
-
   await prisma.evaluation.delete({ where: { id: current.id } });
 
   revalidatePath(`/app/folders/${current.folderId}`);
@@ -128,7 +128,10 @@ export async function getEvaluation(evaluationId: string) {
   if (!ev) throw new Error("Evaluation not found");
 
   await requireFolderAccess(ev.folderId, me, "viewer");
-  return ev;
+  return {
+    ...ev,
+    data: parseJsonString(ev.data, {} as any),
+  };
 }
 
 export async function listEvaluations(folderId: string) {
@@ -138,7 +141,7 @@ export async function listEvaluations(folderId: string) {
   const fid = String(folderId);
   await requireFolderAccess(fid, me, "viewer");
 
-  return prisma.evaluation.findMany({
+  const rows = await prisma.evaluation.findMany({
     where: { folderId: fid },
     orderBy: { createdAt: "desc" },
     select: {
@@ -151,63 +154,45 @@ export async function listEvaluations(folderId: string) {
       data: true,
     },
   });
+
+  return rows.map((r) => ({
+    ...r,
+    data: parseJsonString(r.data, {} as any),
+  }));
 }
 
 /**
- * ✅ Form action that supports BOTH call styles:
- *  1) createFolderEvaluationFromForm(formData)
- *  2) createFolderEvaluationFromForm(folderId, formData)  <-- for bind(null, folderId)
- *
- * Returns Promise<void> so <form action={...}> typing is happy.
+ * Server Action formille.
+ * Sivu käyttää: action={createFolderEvaluationFromForm.bind(null, folderId)}
  */
+export async function createFolderEvaluationFromForm(folderId: string, formData: FormData): Promise<void>;
 export async function createFolderEvaluationFromForm(formData: FormData): Promise<void>;
-export async function createFolderEvaluationFromForm(
-  folderId: string,
-  formData: FormData
-): Promise<void>;
-export async function createFolderEvaluationFromForm(
-  a: FormData | string,
-  b?: FormData
-): Promise<void> {
+export async function createFolderEvaluationFromForm(a: any, b?: any): Promise<void> {
+  const folderId = a instanceof FormData ? String(a.get("folderId") ?? "").trim() : String(a ?? "").trim();
   const formData = a instanceof FormData ? a : (b as FormData);
-  const folderId =
-    a instanceof FormData
-      ? String(formData.get("folderId") ?? "").trim()
-      : String(a).trim();
-
-  if (!formData) throw new Error("formData missing");
   if (!folderId) throw new Error("folderId missing");
 
   const subject = String(formData.get("subject") ?? "").trim();
   const evaluator = String(formData.get("evaluator") ?? "").trim();
-
-  // Sun page.tsx lähettää sportId hidden-fieldinä, ei sportLabel:
   const sportId = String(formData.get("sportId") ?? "").trim();
-  const sportLabel = sportId ? sportId : String(formData.get("sportLabel") ?? "").trim();
-
-  // Rakennetaan data samalla tavalla kuin sun UI (score:* + notes)
-  const notes = String(formData.get("notes") ?? "").trim();
+  const sportLabel = sportId || String(formData.get("sportLabel") ?? "").trim();
 
   const scores: Record<string, string> = {};
   for (const [k, v] of formData.entries()) {
     if (!k.startsWith("score:")) continue;
-    const area = k.slice("score:".length).trim();
-    if (!area) continue;
-    const val = String(v ?? "").trim();
-    if (!val || val === "unrated") continue;
-    scores[area] = val;
+    const area = k.slice("score:".length);
+    const val = String(v ?? "");
+    if (area) scores[area] = val;
   }
 
+  const notes = String(formData.get("notes") ?? "").trim();
   const data = { scores, notes };
 
   await createEvaluation({
     folderId,
-    subject: subject || "Arviointi",
-    evaluator: evaluator || undefined,
-    sportLabel: sportLabel || "",
+    subject,
+    evaluator,
+    sportLabel,
     data,
   });
-
-  // createEvaluation tekee jo revalidatet, mutta ei haittaa jättää tyhjäksi tässä.
-  return;
 }
