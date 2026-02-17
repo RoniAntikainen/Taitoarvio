@@ -129,7 +129,6 @@ export default async function FolderDetailPage({
           </div>
         </div>
 
-        {/* ✅ FIX: ei bind(folderId,"plan") enää */}
         <form action={saveSectionFromForm} className="fd-form">
           <input type="hidden" name="folderId" value={folderId} />
           <input type="hidden" name="key" value="plan" />
@@ -213,9 +212,12 @@ export default async function FolderDetailPage({
 
         {canEdit ? (
           <form
-            action={createFolderEvaluationFromForm.bind(null, folderId)}
+            action={createFolderEvaluationFromForm}
             className="fd-card fd-form"
           >
+            {/* ✅ FIX: folderId tulee formDatassa eikä bindillä */}
+            <input type="hidden" name="folderId" value={folderId} />
+
             <div className="fd-row">
               <input
                 name="subject"
