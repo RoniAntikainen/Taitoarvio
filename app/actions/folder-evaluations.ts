@@ -69,9 +69,18 @@ export async function updateEvaluation(
   await prisma.evaluation.update({
     where: { id: current.id },
     data: {
-      subject: patch.subject !== undefined ? (String(patch.subject).trim() || "Arviointi") : undefined,
-      evaluator: patch.evaluator !== undefined ? (String(patch.evaluator).trim() || me) : undefined,
-      sportLabel: patch.sportLabel !== undefined ? String(patch.sportLabel ?? "").trim() : undefined,
+      subject:
+        patch.subject !== undefined
+          ? String(patch.subject).trim() || "Arviointi"
+          : undefined,
+      evaluator:
+        patch.evaluator !== undefined
+          ? String(patch.evaluator).trim() || me
+          : undefined,
+      sportLabel:
+        patch.sportLabel !== undefined
+          ? String(patch.sportLabel ?? "").trim()
+          : undefined,
       data: patch.data !== undefined ? toJsonString(patch.data) : undefined,
     },
   });
@@ -143,37 +152,62 @@ export async function listEvaluations(folderId: string) {
     },
   });
 }
-export async function createFolderEvaluationFromForm(formData: FormData) {
-  "use server";
 
-  const folderId = String(formData.get("folderId") ?? "").trim();
+/**
+ * ✅ Form action that supports BOTH call styles:
+ *  1) createFolderEvaluationFromForm(formData)
+ *  2) createFolderEvaluationFromForm(folderId, formData)  <-- for bind(null, folderId)
+ *
+ * Returns Promise<void> so <form action={...}> typing is happy.
+ */
+export async function createFolderEvaluationFromForm(formData: FormData): Promise<void>;
+export async function createFolderEvaluationFromForm(
+  folderId: string,
+  formData: FormData
+): Promise<void>;
+export async function createFolderEvaluationFromForm(
+  a: FormData | string,
+  b?: FormData
+): Promise<void> {
+  const formData = a instanceof FormData ? a : (b as FormData);
+  const folderId =
+    a instanceof FormData
+      ? String(formData.get("folderId") ?? "").trim()
+      : String(a).trim();
+
+  if (!formData) throw new Error("formData missing");
+  if (!folderId) throw new Error("folderId missing");
+
   const subject = String(formData.get("subject") ?? "").trim();
   const evaluator = String(formData.get("evaluator") ?? "").trim();
-  const sportLabel = String(formData.get("sportLabel") ?? "").trim();
-  const data = String(formData.get("data") ?? "").trim();
 
-  // Jos sun varsinaisessa create-funktiossa on eri signature, vaihda tämä kutsu:
-  // 1) jos sulla on createFolderEvaluation(folderId, subject, evaluator, sportLabel, data)
-  if (typeof (globalThis as any).__dummy__ === "undefined") {
-    // noop - vain jotta TS ei valita tyhjästä blokista joissain konfigeissa
+  // Sun page.tsx lähettää sportId hidden-fieldinä, ei sportLabel:
+  const sportId = String(formData.get("sportId") ?? "").trim();
+  const sportLabel = sportId ? sportId : String(formData.get("sportLabel") ?? "").trim();
+
+  // Rakennetaan data samalla tavalla kuin sun UI (score:* + notes)
+  const notes = String(formData.get("notes") ?? "").trim();
+
+  const scores: Record<string, string> = {};
+  for (const [k, v] of formData.entries()) {
+    if (!k.startsWith("score:")) continue;
+    const area = k.slice("score:".length).trim();
+    if (!area) continue;
+    const val = String(v ?? "").trim();
+    if (!val || val === "unrated") continue;
+    scores[area] = val;
   }
 
-  // Yritetään kutsua olemassa olevaa funktiota nimillä joita projekteissa yleensä on
-  // (valitse se mikä löytyy sun tiedostosta ja poista muut).
-  // @ts-ignore
-  if (typeof createFolderEvaluation === "function") {
-    // @ts-ignore
-    return await createFolderEvaluation(folderId, subject, evaluator, sportLabel, data);
-  }
+  const data = { scores, notes };
 
-  // @ts-ignore
-  if (typeof createEvaluation === "function") {
-    // @ts-ignore
-    return await createEvaluation(folderId, subject, evaluator, sportLabel, data);
-  }
+  await createEvaluation({
+    folderId,
+    subject: subject || "Arviointi",
+    evaluator: evaluator || undefined,
+    sportLabel: sportLabel || "",
+    data,
+  });
 
-  // Jos mitään ei löydy, heitetään selkeä virhe:
-  throw new Error(
-    "createFolderEvaluationFromForm: ei löytynyt createFolderEvaluation/createEvaluation -funktiota. Lisää varsinainen create-funktio folder-evaluations.ts:ään."
-  );
+  // createEvaluation tekee jo revalidatet, mutta ei haittaa jättää tyhjäksi tässä.
+  return;
 }
