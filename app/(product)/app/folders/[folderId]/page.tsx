@@ -46,12 +46,8 @@ export default async function FolderDetailPage({
   const { folderId } = await params;
 
   const { folder, role } = await getFolderView(folderId);
-
-  // getFolderProfile() palauttaa Folder-olion, joten sportId/athleteName voi puuttua.
   const profile = await getFolderProfile(folderId);
-  const sportId: "dance" | "football" =
-    ((profile as any)?.sportId as "dance" | "football") ?? "dance";
-  const athleteName: string = (profile as any)?.athleteName ?? "—";
+  const sportId = profile.sportId;
 
   const plan = await getSection(folderId, "plan");
   const upcoming = await getSection(folderId, "upcoming");
@@ -68,7 +64,7 @@ export default async function FolderDetailPage({
           <div className="fd-headTitle">
             <h1 className="fd-title">{folder.name}</h1>
             <div className="fd-meta">
-              <span>Oppilas: {athleteName}</span>
+              <span>Oppilas: {profile.athleteName || "—"}</span>
               <span className="fd-dot">·</span>
               <span>Laji: {sportName(sportId)}</span>
               <span className="fd-dot">·</span>
@@ -133,19 +129,20 @@ export default async function FolderDetailPage({
           </div>
         </div>
 
-        <form
-          action={saveSectionFromForm.bind(null, folderId, "plan")}
-          className="fd-form"
-        >
+        {/* ✅ FIX: ei bind(folderId,"plan") enää */}
+        <form action={saveSectionFromForm} className="fd-form">
+          <input type="hidden" name="folderId" value={folderId} />
+          <input type="hidden" name="key" value="plan" />
+
           <textarea
-            name="content"
+            name="json"
             rows={10}
-            defaultValue={plan.content}
+            defaultValue={plan.content || ""}
             placeholder="Kirjoita valmennussuunnitelma tähän..."
             className="input"
             disabled={!canEdit}
           />
-          <input type="hidden" name="title" value="Valmennussuunnitelma" />
+
           <div className="fd-formActions">
             {canEdit && <button className="btn btn--primary">Tallenna</button>}
           </div>
@@ -192,16 +189,11 @@ export default async function FolderDetailPage({
           action={saveResultsJsonFromForm.bind(null, folderId)}
           className="fd-form"
         >
-          {canEdit ? (
-            <ResultsEditor
-              folderId={folderId}
-              sportId={sportId}
-              initialJson={results.content || "[]"}
-            />
-          ) : (
-            <pre className="fd-pre">{results.content || "[]"}</pre>
-          )}
-
+          <ResultsEditor
+            sportId={sportId as any}
+            initialJson={results.content || "[]"}
+            readOnly={!canEdit}
+          />
           <div className="fd-formActions">
             {canEdit && (
               <button className="btn btn--primary">Tallenna tulokset</button>
@@ -227,7 +219,7 @@ export default async function FolderDetailPage({
             <div className="fd-row">
               <input
                 name="subject"
-                defaultValue={athleteName !== "—" ? athleteName : "Oppilas"}
+                defaultValue={profile.athleteName || "Oppilas"}
                 placeholder="Oppilaan nimi"
                 className="input"
               />
@@ -312,7 +304,7 @@ export default async function FolderDetailPage({
         )}
       </section>
 
-      {/* ✅ MEETINGS */}
+      {/* MEETINGS */}
       <section className="fd-section">
         <div className="fd-sectionHead">
           <h2 className="fd-sectionTitle">Tapaamiset</h2>
