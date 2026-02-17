@@ -31,7 +31,14 @@ export async function listSections(folderId: string) {
   const sections = await prisma.folderItem.findMany({
     where: { folderId: fid, type: "section" },
     orderBy: { createdAt: "asc" },
-    select: { id: true, folderId: true, title: true, content: true, createdAt: true, updatedAt: true },
+    select: {
+      id: true,
+      folderId: true,
+      title: true,
+      content: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   const allIds = new Set<string>();
@@ -43,7 +50,15 @@ export async function listSections(folderId: string) {
   const items = allIds.size
     ? await prisma.folderItem.findMany({
         where: { id: { in: Array.from(allIds) } },
-        select: { id: true, folderId: true, type: true, title: true, content: true, createdAt: true, updatedAt: true },
+        select: {
+          id: true,
+          folderId: true,
+          type: true,
+          title: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       })
     : [];
 
@@ -125,7 +140,10 @@ export async function deleteSection(sectionItemId: string) {
   return { ok: true };
 }
 
-export async function attachItemToSection(sectionItemId: string, folderItemId: string) {
+export async function attachItemToSection(
+  sectionItemId: string,
+  folderItemId: string
+) {
   const session = await auth();
   const me = requireEmail(session);
 
@@ -156,7 +174,10 @@ export async function attachItemToSection(sectionItemId: string, folderItemId: s
   return { ok: true };
 }
 
-export async function detachItemFromSection(sectionItemId: string, folderItemId: string) {
+export async function detachItemFromSection(
+  sectionItemId: string,
+  folderItemId: string
+) {
   const session = await auth();
   const me = requireEmail(session);
 
@@ -181,7 +202,10 @@ export async function detachItemFromSection(sectionItemId: string, folderItemId:
   return { ok: true };
 }
 
-export async function reorderSectionItems(sectionItemId: string, orderedFolderItemIds: string[]) {
+export async function reorderSectionItems(
+  sectionItemId: string,
+  orderedFolderItemIds: string[]
+) {
   const session = await auth();
   const me = requireEmail(session);
 
@@ -201,7 +225,10 @@ export async function reorderSectionItems(sectionItemId: string, orderedFolderIt
 
   await prisma.folderItem.update({
     where: { id: s.id },
-    data: { content: stringifyContent({ itemIds: cleaned }), updatedAt: new Date() },
+    data: {
+      content: stringifyContent({ itemIds: cleaned }),
+      updatedAt: new Date(),
+    },
   });
 
   revalidatePath(`/app/folders/${s.folderId}`);
@@ -265,7 +292,8 @@ function safeJsonStringFromForm(formData: FormData, field: string) {
   }
 }
 
-export async function saveSectionFromForm(formData: FormData) {
+// ✅ IMPORTANT: form action must return void / Promise<void>
+export async function saveSectionFromForm(formData: FormData): Promise<void> {
   const session = await auth();
   const me = requireEmail(session);
 
@@ -302,10 +330,11 @@ export async function saveSectionFromForm(formData: FormData) {
   }
 
   revalidatePath(`/app/folders/${folderId}`);
-  return { ok: true };
+  return;
 }
 
-export async function saveResultsJsonFromForm(formData: FormData) {
+// ✅ IMPORTANT: form action must return void / Promise<void>
+export async function saveResultsJsonFromForm(formData: FormData): Promise<void> {
   const folderId = String(formData.get("folderId") ?? "").trim();
   const json = safeJsonStringFromForm(formData, "json");
 
@@ -313,10 +342,13 @@ export async function saveResultsJsonFromForm(formData: FormData) {
   fd.set("folderId", folderId);
   fd.set("key", "results");
   fd.set("json", json);
-  return saveSectionFromForm(fd);
+
+  await saveSectionFromForm(fd);
+  return;
 }
 
-export async function saveUpcomingJsonFromForm(formData: FormData) {
+// ✅ IMPORTANT: form action must return void / Promise<void>
+export async function saveUpcomingJsonFromForm(formData: FormData): Promise<void> {
   const folderId = String(formData.get("folderId") ?? "").trim();
   const json = safeJsonStringFromForm(formData, "json");
 
@@ -324,18 +356,21 @@ export async function saveUpcomingJsonFromForm(formData: FormData) {
   fd.set("folderId", folderId);
   fd.set("key", "upcoming");
   fd.set("json", json);
-  return saveSectionFromForm(fd);
+
+  await saveSectionFromForm(fd);
+  return;
 }
 
 /**
  * ✅ Missing export fix for build:
  * Folder settings page imports `saveFolderProfileFromForm` from this module.
  * We'll store "profile" as a section_json blob (key: "profile").
+ *
+ * ✅ Also: form action return type must be Promise<void>
  */
-export async function saveFolderProfileFromForm(formData: FormData) {
+export async function saveFolderProfileFromForm(formData: FormData): Promise<void> {
   const folderId = String(formData.get("folderId") ?? "").trim();
 
-  // Accept either "json" or "profile" field names from different forms
   const raw =
     formData.get("json") ??
     formData.get("profile") ??
@@ -358,5 +393,6 @@ export async function saveFolderProfileFromForm(formData: FormData) {
   fd.set("key", "profile");
   fd.set("json", json);
 
-  return saveSectionFromForm(fd);
+  await saveSectionFromForm(fd);
+  return;
 }
