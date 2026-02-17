@@ -326,3 +326,37 @@ export async function saveUpcomingJsonFromForm(formData: FormData) {
   fd.set("json", json);
   return saveSectionFromForm(fd);
 }
+
+/**
+ * ✅ Missing export fix for build:
+ * Folder settings page imports `saveFolderProfileFromForm` from this module.
+ * We'll store "profile" as a section_json blob (key: "profile").
+ */
+export async function saveFolderProfileFromForm(formData: FormData) {
+  const folderId = String(formData.get("folderId") ?? "").trim();
+
+  // Accept either "json" or "profile" field names from different forms
+  const raw =
+    formData.get("json") ??
+    formData.get("profile") ??
+    formData.get("data") ??
+    "";
+
+  const json = (() => {
+    const s = String(raw ?? "").trim();
+    if (!s) return "{}";
+    try {
+      JSON.parse(s);
+      return s;
+    } catch {
+      return JSON.stringify({ text: s });
+    }
+  })();
+
+  const fd = new FormData();
+  fd.set("folderId", folderId);
+  fd.set("key", "profile");
+  fd.set("json", json);
+
+  return saveSectionFromForm(fd);
+}
