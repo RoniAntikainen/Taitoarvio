@@ -215,7 +215,6 @@ export async function reorderSectionItems(sectionItemId: string, orderedFolderIt
   const c = parseContent(s.content);
   const set = new Set(c.itemIds);
 
-  // ✅ estää injektoimasta id:t joita ei ollut sectionissa
   const cleaned = orderedFolderItemIds.map(String).filter((id) => set.has(id));
 
   await prisma.folderItem.update({
@@ -228,8 +227,7 @@ export async function reorderSectionItems(sectionItemId: string, orderedFolderIt
 }
 
 /* =========================================================
-   Compatibility exports (older pages)
-   Store JSON blobs as folderItem(type: "section_json", title: key)
+   JSON blobs stored as folderItem(type: "section_json", title: key)
    ========================================================= */
 
 export async function getFolderProfile(folderId: string) {
@@ -283,11 +281,10 @@ function safeJsonStringFromForm(formData: FormData, field: string) {
 }
 
 /**
- * saveSectionFromForm supports BOTH call styles:
+ * ✅ Supports BOTH:
  *  1) saveSectionFromForm(formData)
- *  2) saveSectionFromForm(folderId, key, formData)  <-- needed for .bind(null, folderId, "plan")
- *
- * Must return void / Promise<void> for <form action={...}> typing.
+ *  2) saveSectionFromForm(folderId, key, formData)  <-- for bind(null, folderId, "plan")
+ * Must return Promise<void> for <form action={...}> typing.
  */
 export async function saveSectionFromForm(formData: FormData): Promise<void>;
 export async function saveSectionFromForm(folderId: string, key: string, formData: FormData): Promise<void>;
@@ -304,12 +301,12 @@ export async function saveSectionFromForm(
   let key: string;
 
   if (a instanceof FormData) {
-    // style #1
+    // Style #1
     formData = a;
     folderId = String(formData.get("folderId") ?? "").trim();
     key = String(formData.get("key") ?? "").trim();
   } else {
-    // style #2
+    // Style #2
     folderId = String(a).trim();
     key = String(b ?? "").trim();
     formData = c as FormData;
@@ -318,7 +315,7 @@ export async function saveSectionFromForm(
   if (!formData) throw new Error("formData missing");
   if (!folderId || !key) throw new Error("folderId/key missing");
 
-  // If "json" exists => treat as JSON blob.
+  // If "json" exists => JSON blob.
   // Else use "content" (textarea) and store as JSON { text }.
   const json =
     formData.get("json") != null
@@ -352,11 +349,22 @@ export async function saveSectionFromForm(
   }
 
   revalidatePath(`/app/folders/${folderId}`);
-  return;
 }
 
-export async function saveResultsJsonFromForm(formData: FormData): Promise<void> {
-  const folderId = String(formData.get("folderId") ?? "").trim();
+/**
+ * ✅ Supports BOTH:
+ *  1) saveResultsJsonFromForm(formData)
+ *  2) saveResultsJsonFromForm(folderId, formData)   <-- for bind(null, folderId)
+ */
+export async function saveResultsJsonFromForm(formData: FormData): Promise<void>;
+export async function saveResultsJsonFromForm(folderId: string, formData: FormData): Promise<void>;
+export async function saveResultsJsonFromForm(
+  a: FormData | string,
+  b?: FormData
+): Promise<void> {
+  const folderId = a instanceof FormData ? String(a.get("folderId") ?? "").trim() : String(a).trim();
+  const formData = a instanceof FormData ? a : (b as FormData);
+
   const json = safeJsonStringFromForm(formData, "json");
 
   const fd = new FormData();
@@ -367,8 +375,20 @@ export async function saveResultsJsonFromForm(formData: FormData): Promise<void>
   await saveSectionFromForm(fd);
 }
 
-export async function saveUpcomingJsonFromForm(formData: FormData): Promise<void> {
-  const folderId = String(formData.get("folderId") ?? "").trim();
+/**
+ * ✅ Supports BOTH:
+ *  1) saveUpcomingJsonFromForm(formData)
+ *  2) saveUpcomingJsonFromForm(folderId, formData)  <-- for bind(null, folderId)
+ */
+export async function saveUpcomingJsonFromForm(formData: FormData): Promise<void>;
+export async function saveUpcomingJsonFromForm(folderId: string, formData: FormData): Promise<void>;
+export async function saveUpcomingJsonFromForm(
+  a: FormData | string,
+  b?: FormData
+): Promise<void> {
+  const folderId = a instanceof FormData ? String(a.get("folderId") ?? "").trim() : String(a).trim();
+  const formData = a instanceof FormData ? a : (b as FormData);
+
   const json = safeJsonStringFromForm(formData, "json");
 
   const fd = new FormData();
@@ -380,9 +400,8 @@ export async function saveUpcomingJsonFromForm(formData: FormData): Promise<void
 }
 
 /**
- * Missing export fix for build:
- * Folder settings page imports `saveFolderProfileFromForm` from this module.
- * We store it as section_json key "profile".
+ * ✅ Folder settings page expects this export.
+ * Stored as section_json key "profile".
  */
 export async function saveFolderProfileFromForm(formData: FormData): Promise<void> {
   const folderId = String(formData.get("folderId") ?? "").trim();
