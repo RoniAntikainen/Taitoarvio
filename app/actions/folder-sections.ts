@@ -21,6 +21,10 @@ function stringifyContent(v: SectionContent) {
   return JSON.stringify({ itemIds: v.itemIds });
 }
 
+/* =========================================================
+   Section list (type: "section") + itemIds
+   ========================================================= */
+
 export async function listSections(folderId: string) {
   const session = await auth();
   const me = requireEmail(session);
@@ -140,10 +144,7 @@ export async function deleteSection(sectionItemId: string) {
   return { ok: true };
 }
 
-export async function attachItemToSection(
-  sectionItemId: string,
-  folderItemId: string
-) {
+export async function attachItemToSection(sectionItemId: string, folderItemId: string) {
   const session = await auth();
   const me = requireEmail(session);
 
@@ -174,10 +175,7 @@ export async function attachItemToSection(
   return { ok: true };
 }
 
-export async function detachItemFromSection(
-  sectionItemId: string,
-  folderItemId: string
-) {
+export async function detachItemFromSection(sectionItemId: string, folderItemId: string) {
   const session = await auth();
   const me = requireEmail(session);
 
@@ -202,10 +200,7 @@ export async function detachItemFromSection(
   return { ok: true };
 }
 
-export async function reorderSectionItems(
-  sectionItemId: string,
-  orderedFolderItemIds: string[]
-) {
+export async function reorderSectionItems(sectionItemId: string, orderedFolderItemIds: string[]) {
   const session = await auth();
   const me = requireEmail(session);
 
@@ -225,10 +220,7 @@ export async function reorderSectionItems(
 
   await prisma.folderItem.update({
     where: { id: s.id },
-    data: {
-      content: stringifyContent({ itemIds: cleaned }),
-      updatedAt: new Date(),
-    },
+    data: { content: stringifyContent({ itemIds: cleaned }), updatedAt: new Date() },
   });
 
   revalidatePath(`/app/folders/${s.folderId}`);
@@ -236,10 +228,8 @@ export async function reorderSectionItems(
 }
 
 /* =========================================================
-   Compatibility exports (older folder/[folderId]/page.tsx)
-   - Näitä nimiä vanha page importtaa.
-   - Ei sotketa varsinaisia "section" itemIds-osioita.
-   - Tallennetaan JSON-blobeina omaan typeen: "section_json"
+   Compatibility exports (older pages)
+   Store JSON blobs as folderItem(type: "section_json", title: key)
    ========================================================= */
 
 export async function getFolderProfile(folderId: string) {
@@ -292,16 +282,48 @@ function safeJsonStringFromForm(formData: FormData, field: string) {
   }
 }
 
-// ✅ IMPORTANT: form action must return void / Promise<void>
-export async function saveSectionFromForm(formData: FormData): Promise<void> {
+/**
+ * saveSectionFromForm supports BOTH call styles:
+ *  1) saveSectionFromForm(formData)
+ *  2) saveSectionFromForm(folderId, key, formData)  <-- needed for .bind(null, folderId, "plan")
+ *
+ * Must return void / Promise<void> for <form action={...}> typing.
+ */
+export async function saveSectionFromForm(formData: FormData): Promise<void>;
+export async function saveSectionFromForm(folderId: string, key: string, formData: FormData): Promise<void>;
+export async function saveSectionFromForm(
+  a: FormData | string,
+  b?: string,
+  c?: FormData
+): Promise<void> {
   const session = await auth();
   const me = requireEmail(session);
 
-  const folderId = String(formData.get("folderId") ?? "").trim();
-  const key = String(formData.get("key") ?? "").trim();
-  const json = safeJsonStringFromForm(formData, "json");
+  let formData: FormData;
+  let folderId: string;
+  let key: string;
 
+  if (a instanceof FormData) {
+    // style #1
+    formData = a;
+    folderId = String(formData.get("folderId") ?? "").trim();
+    key = String(formData.get("key") ?? "").trim();
+  } else {
+    // style #2
+    folderId = String(a).trim();
+    key = String(b ?? "").trim();
+    formData = c as FormData;
+  }
+
+  if (!formData) throw new Error("formData missing");
   if (!folderId || !key) throw new Error("folderId/key missing");
+
+  // If "json" exists => treat as JSON blob.
+  // Else use "content" (textarea) and store as JSON { text }.
+  const json =
+    formData.get("json") != null
+      ? safeJsonStringFromForm(formData, "json")
+      : JSON.stringify({ text: String(formData.get("content") ?? "") });
 
   await requireFolderAccess(folderId, me, "editor");
 
@@ -333,7 +355,6 @@ export async function saveSectionFromForm(formData: FormData): Promise<void> {
   return;
 }
 
-// ✅ IMPORTANT: form action must return void / Promise<void>
 export async function saveResultsJsonFromForm(formData: FormData): Promise<void> {
   const folderId = String(formData.get("folderId") ?? "").trim();
   const json = safeJsonStringFromForm(formData, "json");
@@ -344,10 +365,8 @@ export async function saveResultsJsonFromForm(formData: FormData): Promise<void>
   fd.set("json", json);
 
   await saveSectionFromForm(fd);
-  return;
 }
 
-// ✅ IMPORTANT: form action must return void / Promise<void>
 export async function saveUpcomingJsonFromForm(formData: FormData): Promise<void> {
   const folderId = String(formData.get("folderId") ?? "").trim();
   const json = safeJsonStringFromForm(formData, "json");
@@ -358,15 +377,12 @@ export async function saveUpcomingJsonFromForm(formData: FormData): Promise<void
   fd.set("json", json);
 
   await saveSectionFromForm(fd);
-  return;
 }
 
 /**
- * ✅ Missing export fix for build:
+ * Missing export fix for build:
  * Folder settings page imports `saveFolderProfileFromForm` from this module.
- * We'll store "profile" as a section_json blob (key: "profile").
- *
- * ✅ Also: form action return type must be Promise<void>
+ * We store it as section_json key "profile".
  */
 export async function saveFolderProfileFromForm(formData: FormData): Promise<void> {
   const folderId = String(formData.get("folderId") ?? "").trim();
@@ -394,5 +410,4 @@ export async function saveFolderProfileFromForm(formData: FormData): Promise<voi
   fd.set("json", json);
 
   await saveSectionFromForm(fd);
-  return;
 }
