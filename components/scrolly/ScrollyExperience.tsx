@@ -135,17 +135,17 @@ export default function ScrollyExperience() {
     const video = videoRef.current;
     if (!root) return;
 
-    // ===== hidasta video =====
+    // ===== video =====
     if (video) {
       video.playbackRate = 0.5;
-      // iOS/Safari safe autoplay
       requestAnimationFrame(() => {
         video.play().catch(() => {});
       });
     }
 
+    // ✅ ÄLÄ blokkaa koko scrollya prodissa:
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce && !forceMotion) return;
+    const motionOK = forceMotion || !reduce;
 
     // ===== header height (tärkeä startin kannalta) =====
     const headerEl =
@@ -154,124 +154,143 @@ export default function ScrollyExperience() {
     const headerH = Math.round(headerEl?.getBoundingClientRect().height ?? 0);
     if (headerH > 0) root.style.setProperty("--header-h", `${headerH}px`);
 
+    let killed = false;
     let ctx: { revert: () => void } | null = null;
 
+    const raf2 = (fn: () => void) =>
+      requestAnimationFrame(() => requestAnimationFrame(fn));
+
     (async () => {
-      const gsapMod = await import("gsap");
-      const gsap = gsapMod.default;
+      try {
+        const gsapMod = await import("gsap");
+        const gsap = gsapMod.default;
 
-      const stMod = await import("gsap/ScrollTrigger");
-      const ScrollTrigger = stMod.ScrollTrigger;
-      gsap.registerPlugin(ScrollTrigger);
+        const stMod = await import("gsap/ScrollTrigger");
+        const ScrollTrigger = stMod.ScrollTrigger;
+        gsap.registerPlugin(ScrollTrigger);
 
-      ctx = gsap.context(() => {
-        const SCROLL_PER_SCENE = 0.65;
-        const STEP = 0.20;
-        const HOLD = 0.16;
+        if (killed) return;
 
-        const scenes = gsap.utils.toArray<HTMLElement>("[data-scene]");
+        ctx = gsap.context(() => {
+          const SCROLL_PER_SCENE = 0.65;
+          const STEP = 0.2;
+          const HOLD = 0.16;
 
-        const far = root.querySelector<HTMLElement>("[data-layer='far']");
-        const mid = root.querySelector<HTMLElement>("[data-layer='mid']");
-        const near = root.querySelector<HTMLElement>("[data-layer='near']");
-        const vid = root.querySelector<HTMLElement>("[data-layer='video']");
-        const progress = root.querySelector<HTMLElement>("[data-progress]");
+          const scenes = gsap.utils.toArray<HTMLElement>("[data-scene]");
 
-        // stack scenes
-        gsap.set(scenes, { autoAlpha: 0, pointerEvents: "none" });
-        gsap.set(scenes[0], { autoAlpha: 1, pointerEvents: "auto" });
+          const far = root.querySelector<HTMLElement>("[data-layer='far']");
+          const mid = root.querySelector<HTMLElement>("[data-layer='mid']");
+          const near = root.querySelector<HTMLElement>("[data-layer='near']");
+          const vid = root.querySelector<HTMLElement>("[data-layer='video']");
+          const progress = root.querySelector<HTMLElement>("[data-progress]");
 
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: root,
-            // ✅ alkaa heti kun pinned-osio on headerin alapuolella
-            start: () => `top top+=${headerH}`,
-            end: () =>
-              `+=${window.innerHeight * (scenes.length * SCROLL_PER_SCENE)}`,
-            scrub: 1,
-            pin: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            onUpdate: (self) => {
-              if (progress) {
-                progress.style.transform = `scaleY(${self.progress})`;
-                progress.style.transformOrigin = "top";
-              }
+          // stack scenes
+          gsap.set(scenes, { autoAlpha: 0, pointerEvents: "none" });
+          if (scenes[0]) gsap.set(scenes[0], { autoAlpha: 1, pointerEvents: "auto" });
+
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: root,
+              start: () => `top top+=${headerH}`,
+              end: () => `+=${window.innerHeight * (scenes.length * SCROLL_PER_SCENE)}`,
+              scrub: 1,
+              pin: true,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              onUpdate: (self) => {
+                if (progress) {
+                  progress.style.transform = `scaleY(${self.progress})`;
+                  progress.style.transformOrigin = "top";
+                }
+              },
             },
-          },
-        });
+          });
 
-        // drift vain y (ei sivulle)
-        if (vid) tl.to(vid, { yPercent: -10, xPercent: 0, ease: "none" }, 0);
-        if (far) tl.to(far, { yPercent: -14, xPercent: 0, ease: "none" }, 0);
-        if (mid) tl.to(mid, { yPercent: -22, xPercent: 0, ease: "none" }, 0);
-        if (near) tl.to(near, { yPercent: -30, xPercent: 0, ease: "none" }, 0);
+          // drift (ok myös reduced motionilla, mutta halutessa voit poistaa)
+          if (vid) tl.to(vid, { yPercent: -10, xPercent: 0, ease: "none" }, 0);
+          if (far) tl.to(far, { yPercent: -14, xPercent: 0, ease: "none" }, 0);
+          if (mid) tl.to(mid, { yPercent: -22, xPercent: 0, ease: "none" }, 0);
+          if (near) tl.to(near, { yPercent: -30, xPercent: 0, ease: "none" }, 0);
 
-        // scenes
-        scenes.forEach((scene, i) => {
-          const t = scene.querySelector("[data-anim='title']");
-          const b = scene.querySelector("[data-anim='body']");
-          const c = scene.querySelector("[data-anim='card']");
+          scenes.forEach((scene, i) => {
+            const t = scene.querySelector<HTMLElement>("[data-anim='title']");
+            const b = scene.querySelector<HTMLElement>("[data-anim='body']");
+            const c = scene.querySelector<HTMLElement>("[data-anim='card']");
 
-          const at = i * STEP;
+            const at = i * STEP;
 
-          tl.to(scene, { autoAlpha: 1, pointerEvents: "auto", duration: 0.1 }, at);
+            tl.to(scene, { autoAlpha: 1, pointerEvents: "auto", duration: 0.1 }, at);
 
-          if (i > 0 && t) {
-            tl.fromTo(
-              t,
-              { y: 14, autoAlpha: 0, filter: "blur(10px)" },
-              { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: 0.18, ease: "power2.out" },
-              at + 0.04
-            );
-          }
-          if (i > 0 && b) {
-            tl.fromTo(
-              b,
-              { y: 10, autoAlpha: 0, filter: "blur(10px)" },
-              { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: 0.18, ease: "power2.out" },
-              at + 0.06
-            );
-          }
-          if (i > 0 && c) {
-            tl.fromTo(
-              c,
-              { y: 16, autoAlpha: 0, rotateX: 6, transformPerspective: 900 },
-              { y: 0, autoAlpha: 1, rotateX: 0, duration: 0.22, ease: "power2.out" },
-              at + 0.07
-            );
-          }
+            // ✅ reduced-motion: ei blur/rotateX, vaan kevyt fade
+            if (i > 0 && t) {
+              tl.fromTo(
+                t,
+                motionOK
+                  ? { y: 14, autoAlpha: 0, filter: "blur(10px)" }
+                  : { autoAlpha: 0 },
+                motionOK
+                  ? { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: 0.18, ease: "power2.out" }
+                  : { autoAlpha: 1, duration: 0.01 },
+                at + 0.04
+              );
+            }
+            if (i > 0 && b) {
+              tl.fromTo(
+                b,
+                motionOK
+                  ? { y: 10, autoAlpha: 0, filter: "blur(10px)" }
+                  : { autoAlpha: 0 },
+                motionOK
+                  ? { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: 0.18, ease: "power2.out" }
+                  : { autoAlpha: 1, duration: 0.01 },
+                at + 0.06
+              );
+            }
+            if (i > 0 && c) {
+              tl.fromTo(
+                c,
+                motionOK
+                  ? { y: 16, autoAlpha: 0, rotateX: 6, transformPerspective: 900 }
+                  : { autoAlpha: 0 },
+                motionOK
+                  ? { y: 0, autoAlpha: 1, rotateX: 0, duration: 0.22, ease: "power2.out" }
+                  : { autoAlpha: 1, duration: 0.01 },
+                at + 0.07
+              );
+            }
 
-          if (i < scenes.length - 1) {
-            tl.to(scene, { autoAlpha: 0, pointerEvents: "none", duration: 0.1 }, at + HOLD);
-          }
-        });
+            if (i < scenes.length - 1) {
+              tl.to(scene, { autoAlpha: 0, pointerEvents: "none", duration: 0.1 }, at + HOLD);
+            }
+          });
 
-        
-
-        // ===== KRIITTINEN: refresh + update kun layout on varmasti valmis =====
-        const hardRefresh = () => {
-          ScrollTrigger.refresh(true);
-          ScrollTrigger.update();
-        };
-        const raf2 = (fn: () => void) =>
-          requestAnimationFrame(() => requestAnimationFrame(fn));
-
-        const v = videoRef.current;
-        if (v && v.readyState < 2) {
-          const onMeta = () => {
-            raf2(hardRefresh);
-            v.removeEventListener("loadedmetadata", onMeta);
+          // refresh kun layout varmasti valmis (video metadata voi muuttaa korkeutta)
+          const hardRefresh = () => {
+            ScrollTrigger.refresh(true);
+            ScrollTrigger.update();
           };
-          v.addEventListener("loadedmetadata", onMeta);
-        } else {
-          raf2(hardRefresh);
-        }
 
-      }, root);
+          const v = videoRef.current;
+          if (v && v.readyState < 2) {
+            const onMeta = () => {
+              raf2(hardRefresh);
+              v.removeEventListener("loadedmetadata", onMeta);
+            };
+            v.addEventListener("loadedmetadata", onMeta);
+          } else {
+            raf2(hardRefresh);
+          }
+        }, root);
+      } catch {
+        // jos GSAP import failaa prodissa jostain syystä, ei kaadeta sivua
+        // (tällöin pinned osio näkyy normaalina blokkina)
+      }
     })();
 
-    return () => ctx?.revert();
+    return () => {
+      killed = true;
+      ctx?.revert();
+    };
   }, []);
 
   const pinnedScenes = SCENES.slice(0, PINNED_COUNT);
@@ -279,7 +298,6 @@ export default function ScrollyExperience() {
 
   return (
     <>
-      {/* ===== PINNED SCROLLYTELLING (vain 2 ekaa sceneä) ===== */}
       <div ref={rootRef} className={styles.experience}>
         <div className={styles.bg} aria-hidden="true">
           <video
@@ -332,7 +350,6 @@ export default function ScrollyExperience() {
         </div>
       </div>
 
-      {/* ===== NORMAALI SCROLL (loput scenet) ===== */}
       <div className={styles.normalWrap}>
         {normalScenes.map((s) => (
           <section key={s.id} className={styles.normalScene} aria-label={s.eyebrow}>
