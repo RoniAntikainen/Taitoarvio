@@ -12,6 +12,7 @@ type Scene = {
   lead: string;
   rightType: "appCard" | "grid" | "timeline" | "cta";
 };
+console.log("Scrolly mounted");
 
 const SCENES: Scene[] = [
   {
