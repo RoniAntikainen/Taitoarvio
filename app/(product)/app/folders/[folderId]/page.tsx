@@ -12,6 +12,7 @@ import {
   saveUpcomingJsonFromForm,
 } from "@/app/actions/folder-sections";
 import { createFolderEvaluationFromForm } from "@/app/actions/folder-evaluations";
+import { listFolderMeetings } from "@/app/actions/meetings";
 import ResultsEditor from "@/components/folders/ResultsEditor";
 import UpcomingPicker from "@/components/folders/UpcomingPicker";
 import FolderAnalyticsCards from "@/components/folders/FolderAnalyticsCards";
@@ -63,6 +64,35 @@ export default async function FolderDetailPage({
 
   const evaluations = await listFolderEvaluations(folderId);
   const comments = await listFolderComments(folderId);
+  const meetings = await listFolderMeetings(folderId);
+
+  const nextMeeting = meetings.find((m) => new Date(m.startsAt).getTime() >= Date.now());
+
+  const activity = [
+    ...evaluations.map((e: any) => ({
+      id: `eval-${e.id}`,
+      type: "Arviointi",
+      by: e.evaluator || e.subject || "Tuntematon",
+      createdAt: new Date(e.createdAt),
+      text: `${e.subject} · ${e.sportLabel}`,
+    })),
+    ...comments.map((c) => ({
+      id: `comment-${c.id}`,
+      type: "Kommentti",
+      by: c.createdBy || "Tuntematon",
+      createdAt: new Date(c.createdAt),
+      text: c.content,
+    })),
+    ...meetings.map((m) => ({
+      id: `meeting-${m.id}`,
+      type: "Tapaaminen",
+      by: m.createdBy || "Tiimi",
+      createdAt: new Date(m.createdAt),
+      text: m.title,
+    })),
+  ]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 8);
 
   const canEdit = role === "owner" || role === "editor";
 
@@ -116,6 +146,9 @@ export default async function FolderDetailPage({
         <a className="btn btn--ghost" href="#discussion">
           Keskustelu
         </a>
+        <a className="btn btn--ghost" href="#activity">
+          Aktiivisuus
+        </a>
 
         <div className="fd-toolbarHint">
           {canEdit
@@ -124,6 +157,51 @@ export default async function FolderDetailPage({
               ? "Oppilasrooli: voit selata sisältöä ja kommentoida ryhmän keskusteluun."
               : "Katsoja-rooli: voit seurata tietoja ilman muokkausoikeuksia."}
         </div>
+      </section>
+
+      <section className="fd-summary" aria-label="Kansion tilannekuva">
+        <article className="fd-summaryCard">
+          <span>Arviointeja</span>
+          <strong>{evaluations.length}</strong>
+        </article>
+        <article className="fd-summaryCard">
+          <span>Kommentteja</span>
+          <strong>{comments.length}</strong>
+        </article>
+        <article className="fd-summaryCard">
+          <span>Tapaamisia</span>
+          <strong>{meetings.length}</strong>
+        </article>
+        <article className="fd-summaryCard">
+          <span>Seuraava tapaaminen</span>
+          <strong>{nextMeeting ? new Date(nextMeeting.startsAt).toLocaleDateString("fi-FI") : "Ei sovittu"}</strong>
+        </article>
+      </section>
+
+      <section className="fd-section" id="activity">
+        <div className="fd-sectionHead">
+          <h2 className="fd-sectionTitle">Viimeisin aktiivisuus</h2>
+          <div className="fd-sectionRight">
+            <span className="fd-subtle">Nopea tilannekuva kansiosta</span>
+          </div>
+        </div>
+
+        {activity.length === 0 ? (
+          <div className="fd-muted">Ei aktiivisuutta vielä.</div>
+        ) : (
+          <div className="fd-activityList">
+            {activity.map((item) => (
+              <article key={item.id} className="fd-activityItem">
+                <div className="fd-activityType">{item.type}</div>
+                <div className="fd-activityBody">
+                  <div className="fd-strong">{item.by}</div>
+                  <div className="fd-muted">{item.text}</div>
+                </div>
+                <time className="fd-muted">{item.createdAt.toLocaleString("fi-FI")}</time>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="fd-section" id="plan">

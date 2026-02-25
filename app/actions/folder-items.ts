@@ -59,7 +59,35 @@ export async function createFolderCommentFromForm(folderId: string, formData: Fo
     },
   });
 
+  const folder = await prisma.folder.findUnique({
+    where: { id: folderId },
+    select: { name: true, ownerId: true, members: { select: { userEmail: true } } },
+  });
+
+  if (folder) {
+    const targets = new Set(
+      [folder.ownerId, ...folder.members.map((m) => m.userEmail)]
+        .map((v) => String(v || "").trim().toLowerCase())
+        .filter((v) => !!v && v !== me)
+    );
+
+    const short = text.length > 90 ? `${text.slice(0, 90)}…` : text;
+
+    if (targets.size > 0) {
+      await prisma.notification.createMany({
+        data: Array.from(targets).map((email) => ({
+          userEmail: email,
+          folderId,
+          title: `Uusi kommentti kansiossa ${folder.name}`,
+          body: `${me}: ${short}`,
+          href: `/app/folders/${folderId}#discussion`,
+        })),
+      });
+    }
+  }
+
   revalidatePath(`/app/folders/${folderId}`);
+  revalidatePath("/app/notifications");
 }
 
 export async function createFolderItem(folderId: string, type: string, title: string, content: string) {

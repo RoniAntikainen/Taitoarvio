@@ -587,3 +587,74 @@ button[disabled].fd-btn{
   font-weight: 800;
   font-size: var(--text-lg, 1.1rem);
 }
+
+.fd-summary {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.fd-summaryCard {
+  border-radius: var(--radius-2xl, 24px);
+  border: 1px solid var(--fd-border);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  padding: 0.9rem 1rem;
+  display: grid;
+  gap: 4px;
+}
+
+.fd-summaryCard span {
+  font-size: var(--text-sm, 0.9rem);
+  color: var(--color-text-muted);
+}
+
+.fd-summaryCard strong {
+  font-size: var(--text-2xl, 1.4rem);
+  line-height: 1.1;
+}
+
+.fd-activityList {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--fd-pad);
+}
+
+.fd-activityItem {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: auto 1fr;
+  border: 1px solid var(--fd-border-soft);
+  border-radius: var(--radius-xl, 18px);
+  padding: 0.7rem;
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+}
+
+.fd-activityType {
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: var(--text-xs, 0.78rem);
+  font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--gradient-brand) 30%, var(--color-border));
+  align-self: start;
+}
+
+.fd-activityBody {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+@media (min-width: 880px) {
+  .fd-summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .fd-toolbar {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .fd-activityItem {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+  }
+}

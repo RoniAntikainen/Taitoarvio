@@ -20,16 +20,32 @@ function roleClass(role: string) {
 export default async function FoldersPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<{ error?: string; q?: string; role?: string }>;
 }) {
   const folders = await listMyFolders();
 
   const sp = searchParams ? await searchParams : undefined;
   const error = sp?.error ? decodeURIComponent(sp.error) : null;
+  const q = String(sp?.q ?? "").trim().toLowerCase();
+  const role = String(sp?.role ?? "all");
 
-  const memberships = folders.reduce((sum, folder) => sum + (folder.members?.length ?? 0), 0);
+  const visibleFolders = folders.filter((folder) => {
+    const roleOk = role === "all" ? true : folder.myRole === role;
+    const searchOk =
+      q.length === 0
+        ? true
+        : `${folder.name} ${folder.ownerId}`.toLowerCase().includes(q);
+    return roleOk && searchOk;
+  });
+
+  const memberships = folders.reduce(
+    (sum, folder) => sum + (folder.members?.length ?? 0),
+    0
+  );
   const studentGroups = folders.filter((f) => f.myRole === "student").length;
-  const editorGroups = folders.filter((f) => f.myRole === "editor" || f.myRole === "owner").length;
+  const editorGroups = folders.filter(
+    (f) => f.myRole === "editor" || f.myRole === "owner"
+  ).length;
 
   return (
     <div className="folders-page">
@@ -37,7 +53,8 @@ export default async function FoldersPage({
         <div>
           <h1 className="folders-title">Ryhmäkansiot</h1>
           <p className="folders-lead">
-            Yksi näkymä valmentajille ja oppilaille: suunnitelmat, tulokset, keskustelu ja tapaamiset.
+            Yksi näkymä valmentajille ja oppilaille: suunnitelmat, tulokset,
+            keskustelu ja tapaamiset.
           </p>
         </div>
 
@@ -70,6 +87,34 @@ export default async function FoldersPage({
         </article>
       </section>
 
+      <form action="/app/folders" className="folders-filterForm">
+        <div className="form-field">
+          <label>Hae kansioita</label>
+          <input
+            type="search"
+            name="q"
+            placeholder="Hae nimellä tai omistajan sähköpostilla"
+            defaultValue={sp?.q ?? ""}
+          />
+        </div>
+
+        <div className="form-field">
+          <label>Roolisuodatin</label>
+          <select name="role" defaultValue={role}>
+            <option value="all">Kaikki roolit</option>
+            <option value="owner">Omistaja</option>
+            <option value="editor">Valmentaja</option>
+            <option value="student">Oppilas</option>
+            <option value="viewer">Katsoja</option>
+          </select>
+        </div>
+
+        <div className="folders-filterActions">
+          <button type="submit">Suodata</button>
+          <Link href="/app/folders">Tyhjennä</Link>
+        </div>
+      </form>
+
       <form
         action={async (formData: FormData) => {
           "use server";
@@ -97,7 +142,11 @@ export default async function FoldersPage({
 
         <div className="form-field">
           <label>Kansion nimi</label>
-          <input name="name" placeholder="Esim. U17 kehitysryhmä — kevät 2026" required />
+          <input
+            name="name"
+            placeholder="Esim. U17 kehitysryhmä — kevät 2026"
+            required
+          />
         </div>
 
         <div className="form-row">
@@ -120,11 +169,15 @@ export default async function FoldersPage({
         </div>
       </form>
 
-      {folders.length === 0 ? (
-        <div className="folders-empty">Ei kansioita vielä. Luo ensimmäinen ryhmä yllä olevalla lomakkeella.</div>
+      {visibleFolders.length === 0 ? (
+        <div className="folders-empty">
+          {folders.length === 0
+            ? "Ei kansioita vielä. Luo ensimmäinen ryhmä yllä olevalla lomakkeella."
+            : "Hakuehdoilla ei löytynyt kansioita. Kokeile toista hakua tai roolisuodatinta."}
+        </div>
       ) : (
         <div className="folders-list">
-          {folders.map((f) => (
+          {visibleFolders.map((f) => (
             <Link key={f.id} href={`/app/folders/${f.id}`} className="folder-card">
               <div className="folder-row">
                 <div className="folder-name">{f.name}</div>

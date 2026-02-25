@@ -1,6 +1,9 @@
 .appShell {
   min-height: 100dvh;
-  background: var(--color-bg);
+  background:
+    radial-gradient(1200px 460px at 12% -8%, color-mix(in srgb, var(--gradient-brand) 14%, transparent), transparent 58%),
+    radial-gradient(900px 360px at 88% 0%, color-mix(in srgb, #3b82f6 10%, transparent), transparent 54%),
+    var(--color-bg);
   color: var(--color-text);
 }
 
@@ -30,6 +33,15 @@
 /* content “inner” ettei leviä */
 .appMain {
   padding: var(--space-5) var(--space-4);
+}
+
+.appMain__inner > * {
+  animation: appFadeIn 240ms ease-out;
+}
+
+@keyframes appFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .appMain__inner {

@@ -217,3 +217,33 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
+
+.fs-roleGrid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.fs-roleCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  background: var(--color-surface-alt);
+}
+
+.fs-roleCard strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.fs-roleCard p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+@media (min-width: 760px) {
+  .fs-roleGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

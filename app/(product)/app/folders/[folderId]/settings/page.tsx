@@ -81,6 +81,29 @@ export default async function FolderSettingsPage({
         </form>
       </section>
 
+
+      <section className="fs-card">
+        <h2>Roolit tässä kansiossa</h2>
+        <div className="fs-roleGrid">
+          <article className="fs-roleCard">
+            <strong>Omistaja</strong>
+            <p>Hallinnoi kaikkea: jäsenet, sisältö ja asetukset.</p>
+          </article>
+          <article className="fs-roleCard">
+            <strong>Valmentaja</strong>
+            <p>Muokkaa sisältöjä, arviointeja, tuloksia ja tapaamisia.</p>
+          </article>
+          <article className="fs-roleCard">
+            <strong>Oppilas</strong>
+            <p>Näkee sisällöt ja voi osallistua keskusteluun kommenteilla.</p>
+          </article>
+          <article className="fs-roleCard">
+            <strong>Katsoja</strong>
+            <p>Vain lukuoikeus. Sopii esim. huoltajille tai taustatiimille.</p>
+          </article>
+        </div>
+      </section>
+
       <section className="fs-card">
         <h2>Ryhmäjäsenet</h2>
         <p className="fs-help">
