@@ -18,7 +18,6 @@ export type IconName =
   | "database"
   | "help";
 
-
 export type NavItem = {
   id: string;
   label: string;
@@ -28,9 +27,6 @@ export type NavItem = {
 };
 
 export const APP_NAV: NavItem[] = [
-  // =========================
-  // CORE (kaikissa)
-  // =========================
   {
     id: "home",
     label: "Koti",
@@ -39,15 +35,10 @@ export const APP_NAV: NavItem[] = [
   },
   {
     id: "folders",
-    label: "Kirjasto",
+    label: "Ryhmäkansiot",
     href: "/app/folders",
     icon: "library",
   },
-
-  // =========================
-  // WORK (tablet + desktop)
-  // =========================
-
   {
     id: "calendar",
     label: "Kalenteri",
@@ -55,13 +46,17 @@ export const APP_NAV: NavItem[] = [
     icon: "calendar",
     showOn: { mobile: false, tablet: true, desktop: true },
   },
-  
   {
-    id: "settings",
-    label: "Settings",
-    href: "/app/settings",
-    icon: "settings",
+    id: "notifications",
+    label: "Ilmoitukset",
+    href: "/app/notifications",
+    icon: "bell",
     showOn: { mobile: false, tablet: true, desktop: true },
   },
-
+  {
+    id: "settings",
+    label: "Asetukset",
+    href: "/app/settings",
+    icon: "settings",
+  },
 ];

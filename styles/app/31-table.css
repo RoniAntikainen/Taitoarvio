@@ -163,3 +163,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.appQuickCta--sidebar {
+  width: 100%;
+  margin-top: var(--space-2);
+}

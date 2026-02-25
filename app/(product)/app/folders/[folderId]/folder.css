@@ -508,3 +508,82 @@ button[disabled].fd-btn{
     width: 100%;
   }
 }
+.fd-roleBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  margin-bottom: 0.55rem;
+  font-size: var(--text-xs, 0.8rem);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gradient-brand) 70%, var(--color-text));
+  background: color-mix(in srgb, var(--gradient-brand) 18%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--gradient-brand) 34%, var(--color-border));
+}
+
+.fd-formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.btn--danger {
+  background: color-mix(in srgb, #ef4444 18%, var(--color-surface));
+  border-color: color-mix(in srgb, #ef4444 45%, var(--color-border));
+  color: color-mix(in srgb, #7f1d1d 60%, var(--color-text));
+}
+
+.btn--danger:hover {
+  background: color-mix(in srgb, #ef4444 26%, var(--color-surface));
+}
+
+.fd-toolbar a.btn {
+  text-align: center;
+}
+
+
+.fd-headRight {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: end;
+}
+
+.fd-inline {
+  margin: 0;
+}
+
+.fd-itemTitle {
+  display: grid;
+  gap: 2px;
+}
+
+.fd-scores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+@media (min-width: 900px) {
+  .fd-scores {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.fd-score {
+  border: 1px solid var(--fd-border-soft);
+  border-radius: var(--radius-xl, 18px);
+  padding: 0.6rem 0.7rem;
+  background: color-mix(in srgb, var(--color-surface) 93%, transparent);
+}
+
+.fd-scoreKey {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs, 0.8rem);
+}
+
+.fd-scoreVal {
+  font-weight: 800;
+  font-size: var(--text-lg, 1.1rem);
+}

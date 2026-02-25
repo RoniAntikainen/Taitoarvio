@@ -128,7 +128,7 @@ model Folder {
 model FolderMember {
   folderId  String
   userEmail String
-  role      String   @default("viewer") // viewer | editor
+  role      String   @default("viewer") // viewer | editor | student
   createdAt DateTime @default(now())
 
   folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)

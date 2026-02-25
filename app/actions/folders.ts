@@ -12,7 +12,7 @@ import {
 } from "@/lib/access";
 import { assertFolderLimit } from "@/lib/limits";
 
-type MemberRole = "viewer" | "editor";
+type MemberRole = "viewer" | "editor" | "student";
 
 export type ActionResult<T> =
   | { ok: true; data: T }
@@ -66,7 +66,7 @@ export async function listMyFolders() {
   const session = await auth();
   const me = requireEmail(session);
 
-  return prisma.folder.findMany({
+  const folders = await prisma.folder.findMany({
     where: { members: { some: { userEmail: me } } },
     select: {
       id: true,
@@ -78,6 +78,14 @@ export async function listMyFolders() {
     },
     orderBy: { updatedAt: "desc" },
   });
+
+  return folders.map((folder) => ({
+    ...folder,
+    myRole:
+      normalizeEmail(folder.ownerId) === me
+        ? "owner"
+        : folder.members.find((m) => normalizeEmail(m.userEmail) === me)?.role ?? "viewer",
+  }));
 }
 
 export async function getFolderView(folderId: string) {
@@ -140,7 +148,8 @@ export async function addMember(folderId: string, userEmail: string, role: Membe
 export async function addMemberFromForm(folderId: string, formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const role = String(formData.get("role") ?? "viewer") as MemberRole;
-  await addMember(folderId, email, role === "editor" ? "editor" : "viewer");
+  const normalizedRole: MemberRole = role === "editor" ? "editor" : role === "student" ? "student" : "viewer";
+  await addMember(folderId, email, normalizedRole);
 }
 
 export async function removeMember(folderId: string, userEmail: string) {

@@ -1,4 +1,5 @@
 // components/shell/AppShell.tsx
+import Link from "next/link";
 import AppNav from "@/components/nav/AppNav";
 import UserSheet from "@/components/user/UserMenu";
 import { auth } from "@/auth";
@@ -13,25 +14,39 @@ export default async function AppShell({ children }: { children: React.ReactNode
         <div className="appTopbar__inner">
           <div className="appTopbar__brand">
             <span className="appBrand__text">Taitoarvio</span>
+            <span className="appBrand__sub">valmennusworkspace</span>
           </div>
 
           <div className="appTopbar__nav">
             <AppNav mode="tablet" />
           </div>
 
-          <div className="appTopbar__user">{me ? <UserSheet user={me} /> : null}</div>
+          <div className="appTopbar__user">
+            <Link href="/app/folders" className="appQuickCta">
+              + Uusi ryhmä
+            </Link>
+            {me ? <UserSheet user={me} /> : null}
+          </div>
         </div>
       </header>
 
       <aside className="appSidebar" aria-label="Sidebar navigation">
         <div className="appSidebar__inner">
           <div className="appSidebar__brand">
-            <span className="appBrand__text">Taitoarvio</span>
+            <span className="appBrand__mark" />
+            <div>
+              <span className="appBrand__text">Taitoarvio</span>
+              <div className="appBrand__sub">valmennusworkspace</div>
+            </div>
           </div>
 
           <nav className="appSidebar__nav" aria-label="Primary navigation">
             <AppNav mode="desktop" />
           </nav>
+
+          <Link className="appQuickCta appQuickCta--sidebar" href="/app/folders">
+            + Luo ryhmäkansio
+          </Link>
 
           <div className="appSidebar__profile" aria-label="Account">
             <div className="appSidebar__profileAvatar">{me ? <UserSheet user={me} /> : null}</div>

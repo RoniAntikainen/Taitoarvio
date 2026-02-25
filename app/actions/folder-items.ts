@@ -18,6 +18,50 @@ export async function listFolderItems(folderId: string, type?: string) {
   });
 }
 
+export async function listFolderComments(folderId: string) {
+  const session = await auth();
+  const me = requireEmail(session);
+
+  await requireFolderAccess(folderId, me, "viewer");
+
+  return prisma.folderItem.findMany({
+    where: { folderId, type: "comment" },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      createdBy: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    take: 100,
+  });
+}
+
+export async function createFolderCommentFromForm(folderId: string, formData: FormData) {
+  const session = await auth();
+  const me = requireEmail(session);
+
+  await requireFolderAccess(folderId, me, "viewer");
+
+  const text = String(formData.get("comment") ?? "").trim();
+  if (!text) return;
+
+  await prisma.folderItem.create({
+    data: {
+      folderId,
+      type: "comment",
+      title: "Kommentti",
+      content: text,
+      createdBy: me,
+      updatedAt: new Date(),
+    },
+  });
+
+  revalidatePath(`/app/folders/${folderId}`);
+}
+
 export async function createFolderItem(folderId: string, type: string, title: string, content: string) {
   const session = await auth();
   const me = requireEmail(session);

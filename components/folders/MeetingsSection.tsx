@@ -22,7 +22,7 @@ export default async function MeetingsSection({
   error,
 }: {
   folderId: string;
-  role: "owner" | "editor" | "viewer";
+  role: "owner" | "editor" | "viewer" | "student";
   error?: string;
 }) {
   const meetings = await listFolderMeetings(folderId);
