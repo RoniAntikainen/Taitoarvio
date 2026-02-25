@@ -110,3 +110,38 @@
 .appQuickCta:hover {
   background: color-mix(in srgb, var(--gradient-brand) 28%, var(--color-surface));
 }
+
+/* ===== topbar glass redesign ===== */
+.appTopbar {
+  top: 10px;
+  margin: 0 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+}
+
+.appTopbar__inner {
+  max-width: 1280px;
+  height: 68px;
+}
+
+.appTopbar__nav {
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 6px;
+}
+
+.appTopbar__nav :where(a, button) {
+  border: 1px solid transparent;
+}
+
+.appTopbar__nav :where(a, button):hover {
+  border-color: rgba(99, 102, 241, 0.22);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.appTopbar__nav :where(a, button)[aria-current="page"] {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: linear-gradient(180deg, #ffffff, #f5f8ff);
+}

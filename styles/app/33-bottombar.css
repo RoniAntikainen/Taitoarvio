@@ -66,3 +66,25 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ===== mobile tabbar redesign ===== */
+.appTabbar {
+  margin: 0 10px 10px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 22px 38px rgba(15, 23, 42, 0.16);
+}
+
+.appTabbar__inner {
+  height: 74px;
+}
+
+.appTabbar__nav :where(a, button) {
+  border: 1px solid transparent;
+}
+
+.appTabbar__nav :where(a, button)[aria-current="page"] {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: linear-gradient(180deg, #fff, #f3f6ff);
+}

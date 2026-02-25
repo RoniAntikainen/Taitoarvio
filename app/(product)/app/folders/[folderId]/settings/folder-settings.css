@@ -247,3 +247,66 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ===== Spacious macOS settings redesign ===== */
+.fs-page {
+  gap: clamp(16px, 2vw, 26px);
+}
+
+.fs-header,
+.fs-card,
+.fs-memberRow,
+.fs-roleCard {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow:
+    0 16px 34px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(22px) saturate(142%);
+  -webkit-backdrop-filter: blur(22px) saturate(142%);
+}
+
+.fs-header {
+  border-bottom: 0;
+  padding: clamp(14px, 1.8vw, 22px);
+  margin-bottom: 0;
+}
+
+.fs-title {
+  font-size: clamp(1.9rem, 3.5vw, 2.45rem);
+  letter-spacing: -0.03em;
+}
+
+.fs-card {
+  padding: clamp(16px, 2vw, 24px);
+  gap: 14px;
+}
+
+.fs-actions a,
+.fs-form .btn,
+.fs-removeBtn {
+  border-radius: 999px;
+}
+
+.fs-field .input,
+.fs-field .fd-input,
+.fs-field input,
+.fs-field select {
+  min-height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.fs-memberRow {
+  padding: 0.85rem 0.95rem;
+}
+
+.fs-roleGrid {
+  gap: 0.8rem;
+}
+
+.fs-roleCard {
+  padding: 0.9rem;
+}

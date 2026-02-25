@@ -658,3 +658,140 @@ button[disabled].fd-btn{
     align-items: center;
   }
 }
+
+/* ===== Apple-like folder workspace redesign ===== */
+.fd-page {
+  --fd-max: 1180px;
+  --fd-gap: clamp(16px, 1.8vw, 24px);
+}
+
+.fd-header,
+.fd-toolbar,
+.fd-section,
+.fd-card,
+.fd-summaryCard,
+.fd-activityItem {
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px) saturate(145%);
+  -webkit-backdrop-filter: blur(24px) saturate(145%);
+}
+
+.fd-title {
+  font-size: clamp(2rem, 4.1vw, 3rem);
+  letter-spacing: -0.035em;
+}
+
+.fd-meta {
+  font-size: 0.96rem;
+}
+
+.fd-toolbar {
+  gap: 10px;
+}
+
+.fd-toolbar .btn {
+  border-radius: 999px;
+  min-height: 46px;
+}
+
+.fd-summaryCard {
+  padding: 1rem 1.05rem;
+}
+
+.fd-summaryCard strong {
+  font-size: clamp(1.38rem, 2.7vw, 1.9rem);
+}
+
+.fd-sectionHead {
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+  padding: clamp(14px, 1.5vw, 20px) clamp(14px, 1.7vw, 22px);
+}
+
+.fd-sectionTitle {
+  font-size: clamp(1.15rem, 2vw, 1.42rem);
+}
+
+.fd-form,
+.fd-stack,
+.fd-list,
+.fd-activityList {
+  padding: clamp(14px, 1.8vw, 22px);
+}
+
+.input,
+.fd-input,
+textarea.input,
+textarea.fd-input,
+select.input,
+select.fd-input {
+  border-radius: 15px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.input:focus,
+.fd-input:focus {
+  border-color: rgba(99, 102, 241, 0.42);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.14);
+}
+
+.btn,
+.fd-btn {
+  border-radius: 999px;
+  min-height: 44px;
+  border-color: rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, #fff, #f4f7ff);
+}
+
+.btn--primary {
+  border-color: rgba(99, 102, 241, 0.34);
+  background: linear-gradient(180deg, #ffffff, #eaf0ff);
+  color: #1f2f4a;
+}
+
+.btn--secondary {
+  background: linear-gradient(180deg, #fff, #f7f8fb);
+}
+
+.fd-pre {
+  border-radius: 16px;
+  border-color: rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.fd-score,
+.fd-area {
+  border-radius: 16px;
+  border-color: rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.fd-activityItem {
+  border-radius: 18px;
+}
+
+.fd-activityType {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+@media (max-width: 760px) {
+  .fd-headRight {
+    justify-items: stretch;
+    width: 100%;
+  }
+
+  .fd-actions {
+    width: 100%;
+  }
+
+  .fd-actions .btn,
+  .fd-headRight .btn {
+    width: 100%;
+  }
+}
