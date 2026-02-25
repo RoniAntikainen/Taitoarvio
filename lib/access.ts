@@ -3,7 +3,7 @@ import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 
 export type EntitlementStatus = "FREE" | "TRIAL" | "ACTIVE" | "PAST_DUE" | "CANCELED";
-export type FolderRole = "owner" | "editor" | "viewer";
+export type FolderRole = "owner" | "editor" | "viewer" | "student";
 
 export function normalizeEmail(v: string) {
   return String(v || "").trim().toLowerCase();
@@ -52,12 +52,15 @@ export async function getFolderRole(folderId: string, email: string): Promise<Fo
   });
 
   if (!member) return null;
-  return member.role === "editor" ? "editor" : "viewer";
+  if (member.role === "editor") return "editor";
+  if (member.role === "student") return "student";
+  return "viewer";
 }
 
 function roleRank(role: FolderRole) {
   if (role === "owner") return 3;
   if (role === "editor") return 2;
+  if (role === "student") return 1;
   return 1;
 }
 

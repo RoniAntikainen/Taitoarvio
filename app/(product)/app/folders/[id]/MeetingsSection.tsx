@@ -21,7 +21,7 @@ export default async function MeetingsSection({
   role,
 }: {
   folderId: string;
-  role: "owner" | "editor" | "viewer";
+  role: "owner" | "editor" | "viewer" | "student";
 }) {
   const meetings = await listFolderMeetings(folderId);
   const canEdit = role === "owner" || role === "editor";

@@ -13,12 +13,37 @@ export default async function FoldersPage({
   const sp = searchParams ? await searchParams : undefined;
   const error = sp?.error ? decodeURIComponent(sp.error) : null;
 
+  const memberships = folders.reduce((sum, folder) => sum + (folder.members?.length ?? 0), 0);
+  const myStudentGroups = folders.filter((f) =>
+    f.members.some((m) => m.role === "student")
+  ).length;
+
   return (
     <div className="folders-page">
       <div className="folders-header">
-        <h1 className="folders-title">Kansiot</h1>
+        <div>
+          <h1 className="folders-title">Ryhmäkansiot</h1>
+          <p className="folders-lead">
+            Hallitse valmennusryhmiä, oppilasrooleja ja yhteistä keskustelua yhdessä näkymässä.
+          </p>
+        </div>
         <Link href="/app">Takaisin</Link>
       </div>
+
+      <section className="folders-stats">
+        <article className="folders-stat">
+          <span>Kansiot</span>
+          <strong>{folders.length}</strong>
+        </article>
+        <article className="folders-stat">
+          <span>Jäseniä yhteensä</span>
+          <strong>{memberships}</strong>
+        </article>
+        <article className="folders-stat">
+          <span>Oppilasryhmiä</span>
+          <strong>{myStudentGroups}</strong>
+        </article>
+      </section>
 
       <form
         action={async (formData: FormData) => {
@@ -39,7 +64,6 @@ export default async function FoldersPage({
             redirect(`/app/folders?error=${encoded}`);
           }
 
-          // ✅ onnistui -> takaisin ilman error-paramia
           redirect("/app/folders");
         }}
         className="folders-form"
@@ -77,7 +101,10 @@ export default async function FoldersPage({
         <div className="folders-list">
           {folders.map((f) => (
             <Link key={f.id} href={`/app/folders/${f.id}`} className="folder-card">
-              <div className="folder-name">{f.name}</div>
+              <div className="folder-row">
+                <div className="folder-name">{f.name}</div>
+                <span className="folder-role">Ryhmä</span>
+              </div>
               <div className="folder-meta">
                 Omistaja: {f.ownerId} · Jäseniä: {f.members?.length ?? 0}
               </div>
