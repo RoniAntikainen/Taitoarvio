@@ -152,3 +152,139 @@
     0 0 0 2px var(--color-white),
     0 0 0 4px var(--color-primary);
 }
+
+
+
+/* =========================
+   Header menu toggle + close
+   ========================= */
+
+/* Toggle (Menu/X) oikeassa reunassa */
+.site-header__menuToggle {
+  /* reset */
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+
+  /* shape */
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-xl);
+
+  /* layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  /* micro-interactions */
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease;
+}
+
+.site-header__menuToggle:hover {
+  background: color-mix(in srgb, var(--color-bg) 62%, transparent 38%);
+  border-color: color-mix(in srgb, var(--color-border) 60%, var(--color-text) 40%);
+  transform: translateY(-1px);
+}
+
+.site-header__menuToggle:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+.site-header__menuToggle:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 25%, transparent 75%),
+    0 0 0 1px color-mix(in srgb, var(--color-primary) 55%, var(--color-border) 45%);
+}
+
+/* Kun menu auki, tee napista vähän “aktiivinen” */
+.site-header[data-menu-open="true"] .site-header__menuToggle {
+  background: color-mix(in srgb, var(--color-bg) 52%, transparent 48%);
+  border-color: color-mix(in srgb, var(--color-border) 55%, var(--color-primary) 45%);
+}
+
+/* Lucide icon -koko ja tasapaino */
+.site-header__menuToggle svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.25;
+}
+
+/* =========================
+   Mobile panel close button
+   ========================= */
+
+.mobileMenuClose {
+  /* reset */
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+
+  /* shape */
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-xl);
+
+  /* layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.mobileMenuClose:hover {
+  background: color-mix(in srgb, var(--color-bg) 62%, transparent 38%);
+  transform: translateY(-1px);
+}
+
+.mobileMenuClose:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+.mobileMenuClose:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 25%, transparent 75%),
+    0 0 0 1px color-mix(in srgb, var(--color-primary) 55%, var(--color-border) 45%);
+}
+
+.mobileMenuClose svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.25;
+}
+
+/* =========================
+   Optional: spacing/alignment polish
+   ========================= */
+
+/* Varmista että actionit ja toggle asettuu nätisti */
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.site-header__actionLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+

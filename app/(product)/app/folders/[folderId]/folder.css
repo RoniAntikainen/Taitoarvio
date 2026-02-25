@@ -1,983 +1,510 @@
-/* ------------------------ Perusrunko ------------------------ */
+/* =========================
+   FD — Cohesive Layout System
+   ========================= */
 
-.appMain {
-  min-height: 100vh;
-  background: var(--color-bg);
-  font-family: var(--font-sans);
-  color: var(--color-text);
-  padding: var(--space-4);
-}
+.fd-page{
+  /* System tokens */
+  --fd-max: 980px;
+  --fd-gap: var(--space-4);
+  --fd-pad: clamp(14px, 2vw, 20px);
+  --fd-radius: var(--radius-2xl, 24px);
 
-.appMain__inner {
-  max-width: 960px;
-  margin: 0 auto;
-}
+  --fd-border: color-mix(in srgb, var(--color-border) 55%, transparent);
+  --fd-border-soft: color-mix(in srgb, var(--color-border) 40%, transparent);
 
-.fd-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  padding-bottom: var(--space-8);
-}
+  --fd-surface: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  --fd-surface-2: color-mix(in srgb, var(--color-surface) 96%, transparent);
 
-/* ------------------------ Header / hero ------------------------ */
+  /* One gentle shadow only (too much shadow = messy) */
+  --fd-shadow: 0 14px 34px color-mix(in srgb, #000 10%, transparent);
 
-/* Header-alue itsessään: ei blurriä, ei omaa taustaa */
-.fd-header {
-  position: sticky;
-  top: var(--space-3);
-  z-index: var(--z-sticky);
-  padding: 0 0 var(--space-3);
-  background: transparent;
-}
+  /* Brand wash */
+  --fd-wash: radial-gradient(
+      1100px 340px at 18% 0%,
+      color-mix(in srgb, var(--gradient-brand) 10%, transparent),
+      transparent 62%
+    );
 
-/* ei tarvita erillistä alaviivaa */
-.fd-header::after {
-  content: "";
-  display: none;
-}
-
-/* Lasimainen kortti, jossa otsikko + pillit + napit */
-.fd-head {
   position: relative;
+  display: grid;
+  gap: var(--fd-gap);
+  min-width: 0;
 
-  border-radius: var(--radius-xl);
-  padding: var(--space-4) var(--space-5);
+  /* This is what makes it feel “one page” */
+  max-width: var(--fd-max);
+  margin-inline: auto;
+  padding: var(--fd-gap);
 
-  border: 1px solid color-mix(in srgb, var(--color-border) 85%, var(--color-primary) 10%);
-  box-shadow:
-    0 18px 40px rgba(15, 23, 42, 0.12),
-    0 0 0 1px rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(18px);
+  /* Optional: if background behind is busy, this makes page feel like a sheet */
+  border-radius: calc(var(--fd-radius) + 6px);
+}
 
+@media (max-width: 560px){
+  .fd-page{ padding: var(--space-3); }
+}
+
+/* ---------- Core card standard (header, toolbar, sections, list cards) ---------- */
+.fd-header,
+.fd-toolbar,
+.fd-section,
+.fd-card{
+  border-radius: var(--fd-radius);
+  border: 1px solid var(--fd-border);
+  background: var(--fd-surface);
+  box-shadow: var(--fd-shadow);
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Gentle glass, but not everywhere as a “look” — keep it consistent */
+.fd-header,
+.fd-toolbar,
+.fd-section,
+.fd-card{
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* ---------- Header (top card) ---------- */
+.fd-header{
+  background: var(--fd-wash), var(--fd-surface-2);
+}
+
+.fd-head{
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-5);
+  gap: var(--space-3);
+  padding: var(--fd-pad);
 }
 
-/* pieni aksenttiraita otsikon edessä */
-.fd-headTitle {
-  position: relative;
-  padding-left: 0.8rem;
+.fd-headTitle{ min-width: 0; }
+
+.fd-title{
+  margin: 0;
+  font-size: clamp(var(--text-2xl, 1.5rem), 2.2vw, var(--text-4xl, 2.25rem));
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+.fd-meta{
+  margin-top: var(--space-2);
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm, .925rem);
+  line-height: 1.35;
+}
+
+.fd-dot{ opacity: .55; }
+
+.fd-actions{
+  display: inline-flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-.fd-headTitle::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.25rem;
-  bottom: 0.25rem;
-  width: 3px;
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--color-primary) 88%, white 12%),
-    color-mix(in srgb, var(--color-primary) 55%, transparent)
-  );
-  opacity: 0.9;
+/* ---------- Toolbar (action bar) ---------- */
+.fd-toolbar{
+  padding: var(--fd-pad);
+  background: var(--fd-wash), var(--fd-surface);
+  display: grid;
+  gap: var(--space-2);
 }
 
-.fd-title {
-  margin: 0;
-  font-size: clamp(1.7rem, 3vw, 2rem);
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  color: var(--color-text-strong);
-}
-
-/* meta-pillien sävy yhtenäinen muun UI:n kanssa */
-.fd-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  row-gap: 0.25rem;
-  align-items: center;
-  font-size: var(--text-xs);
-}
-
-.fd-meta span {
-  display: inline-flex;
-  align-items: center;
-}
-
-.fd-meta span:not(.fd-dot) {
-  padding: 0.15rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.14);
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  font-weight: 500;
+.fd-toolbarHint{
   color: var(--color-text-muted);
+  font-size: var(--text-sm, .925rem);
+  line-height: 1.45;
 }
 
-.fd-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.9);
-  margin: 0 0.1rem;
+/* actions wrap nicely + feel consistent */
+.fd-toolbar .btn{
+  width: 100%;
 }
 
-.fd-headRight {
+@media (min-width: 720px){
+  .fd-toolbar{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+  }
+  .fd-toolbarHint{
+    grid-column: 1 / -1;
+    margin-top: var(--space-1);
+  }
+}
+
+/* ---------- Sections with consistent header strip + body padding ---------- */
+.fd-section{
+  background: var(--fd-surface-2);
+}
+
+/* strip */
+.fd-sectionHead{
   display: flex;
-  align-items: center;
-}
-
-.fd-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-/* ------------------------ Toolbar ------------------------ */
-
-.fd-toolbar {
-  margin-top: var(--space-2);
-  border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-alt);
-  border: 1px dashed var(--color-border);
-
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.fd-toolbarHint {
-  margin-left: auto;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-
-/* ------------------------ Sektiot / cardit ------------------------ */
-
-.fd-section {
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.fd-sectionHead {
-  display: flex;
-  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
+  flex-wrap: wrap;
+
+  padding: calc(var(--fd-pad) - 2px) var(--fd-pad);
+  border-bottom: 1px solid var(--fd-border-soft);
+
+  background:
+    radial-gradient(900px 260px at 0% 0%,
+      color-mix(in srgb, var(--gradient-brand) 7%, transparent),
+      transparent 55%
+    ),
+    color-mix(in srgb, var(--color-surface) 94%, transparent);
 }
 
-.fd-sectionTitle {
+.fd-sectionTitle{
   margin: 0;
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--color-text-strong);
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  font-size: var(--text-lg, 1.125rem);
+  line-height: 1.15;
 }
 
-.fd-sectionRight {
-  font-size: var(--text-sm);
-}
-
-.fd-subtle {
-  color: var(--color-text-muted);
-}
-
-/* ------------------------ Lomakkeet ------------------------ */
-
-.fd-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.fd-formActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}
-
-/* Yhteinen input-tyyli tekstikentille, selectille jne. */
-.input,
-.fd-form textarea,
-.fd-form select {
-  width: 100%;
-  min-height: 2.5rem;
-  padding: 0.65rem 0.8rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-input-border);
-  background: var(--color-input-bg);
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  outline: none;
-  transition:
-    border-color var(--duration-fast) var(--easing-standard),
-    box-shadow var(--duration-fast) var(--easing-standard),
-    background-color var(--duration-fast) var(--easing-standard);
-}
-
-.input::placeholder,
-.fd-form textarea::placeholder {
-  color: var(--color-text-faint);
-}
-
-.input:hover,
-.fd-form textarea:hover,
-.fd-form select:hover {
-  border-color: var(--color-input-border-hover);
-}
-
-.input:focus,
-.fd-form textarea:focus,
-.fd-form select:focus {
-  border-color: var(--color-input-border-focus);
-  box-shadow:
-    0 0 0 1px var(--color-input-border-focus),
-    0 0 0 3px var(--focus-ring);
-}
-
-/* ------------------------ Buttons ------------------------ */
-
-.btn {
-  --btn-height: 2.4rem;
-  --btn-padding-x: 0.95rem;
-
+.fd-sectionRight{
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-
-  height: var(--btn-height);
-  padding: 0 var(--btn-padding-x);
-  border-radius: var(--radius-full);
-  border: 1px solid transparent;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-  text-decoration: none;
-  transition:
-    background-color var(--duration-fast) var(--easing-standard),
-    border-color var(--duration-fast) var(--easing-standard),
-    box-shadow var(--duration-fast) var(--easing-standard),
-    transform var(--duration-fast) var(--easing-emphasized),
-    color var(--duration-fast) var(--easing-standard);
-}
-
-/* Pääpainike */
-.btn--primary {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-white);
-  box-shadow: 0 6px 18px rgba(14, 165, 164, 0.22);
-}
-
-.btn--primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(14, 165, 164, 0.26);
-}
-
-.btn--primary:active:not(:disabled) {
-  background: var(--color-primary-active);
-  border-color: var(--color-primary-active);
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Toissijainen (kevyesti rajattu) */
-.btn--secondary {
-  background: var(--color-surface-alt);
-  border-color: var(--color-border);
-  color: var(--color-text-strong);
-}
-
-.btn--secondary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-surface-alt) 80%, var(--color-primary) 20%);
-  border-color: var(--color-primary);
-}
-
-/* Ghost-tyyli toolbarissa */
-.btn--ghost {
-  background: transparent;
-  border-color: transparent;
-  color: var(--color-text-muted);
-}
-
-.btn--ghost:hover:not(:disabled) {
-  background: rgba(148, 163, 184, 0.08);
-  color: var(--color-text-strong);
-}
-
-/* Disabled-tila */
-.btn:disabled,
-.btn[disabled] {
-  cursor: default;
-  opacity: 0.55;
-  background: var(--color-disabled-bg);
-  color: var(--color-disabled-text);
-  border-color: transparent;
-  box-shadow: none;
-}
-
-/* ------------------------ Upcoming (tulevat kilpailut) ------------------------ */
-
-.upcoming {
-  border-radius: var(--radius-md);
-  background: var(--color-surface-alt);
-  border: 1px dashed var(--color-border);
-  padding: var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.upcoming-selected {
-  min-height: 2.25rem;
-  display: flex;
-  align-items: center;
-}
-
-.muted,
-.fd-muted {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-
-.upcoming-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
 }
 
-.upcoming-toolbar button {
-  border-radius: var(--radius-full);
-  border: 1px dashed var(--color-input-border);
-  padding: 0.5rem 0.9rem;
-  font-size: var(--text-xs);
-  background: rgba(148, 163, 184, 0.04);
-  cursor: pointer;
-  transition:
-    border-color var(--duration-fast) var(--easing-standard),
-    background-color var(--duration-fast) var(--easing-standard);
-}
-
-.upcoming-toolbar button:hover {
-  border-color: var(--color-primary);
-  background: rgba(14, 165, 164, 0.06);
-}
-
-/* ------------------------ Tulokset (re-editori) ------------------------ */
-
-.re {
-  border-radius: var(--radius-md);
-  border: 1px dashed var(--color-border);
-  background: var(--color-surface-alt);
-  padding: var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.reToolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  align-items: center;
-  justify-content: space-between;
-}
-
-.reHint {
-  font-size: var(--text-sm);
+.fd-subtle{
   color: var(--color-text-muted);
+  font-size: var(--text-sm, .925rem);
+  line-height: 1.35;
 }
 
-.reBtn {
-  border-radius: var(--radius-full);
-  padding: 0.45rem 0.9rem;
-  font-size: var(--text-xs);
-  border: 1px dashed var(--color-input-border);
-  background: rgba(148, 163, 184, 0.04);
-  cursor: pointer;
-  transition:
-    border-color var(--duration-fast) var(--easing-standard),
-    background-color var(--duration-fast) var(--easing-standard),
-    transform var(--duration-fast) var(--easing-emphasized);
+/* body */
+.fd-section > .fd-form,
+.fd-section > .fd-card,
+.fd-section > .fd-muted,
+.fd-section > .fd-stack,
+.fd-section > .upcoming,
+.fd-section > .fd-divider{
+  padding: var(--fd-pad);
 }
 
-.reBtnPrimary {
-  border-style: solid;
-  border-color: var(--color-primary);
-  background: rgba(14, 165, 164, 0.08);
+/* divider inside sections */
+.fd-divider{
+  height: 1px;
 }
 
-.reBtn:hover {
-  border-color: var(--color-primary);
-  background: rgba(14, 165, 164, 0.12);
-  transform: translateY(-1px);
-}
-
-.reEmpty {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  font-style: italic;
-}
-
-.reList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-/* ------------------------ Arviointi-kortti ------------------------ */
-
-.fd-card {
-  border-radius: var(--radius-xl);
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-4);
-}
-
-.fd-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
-.fd-row .input {
-  flex: 1 1 min(260px, 100%);
-}
-
-/* Arviointialueet – grid 2–3 sarakkeella riippuen leveydestä */
-.fd-areas {
-  margin-top: var(--space-3);
+/* ---------- Forms: consistent spacing + grid ---------- */
+.fd-form{
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--space-3);
+  min-width: 0;
 }
 
-.fd-area {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.fd-area-label {
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-text-strong);
-}
-
-/* Divider ja “ei arviointeja” -teksti */
-
-.fd-divider {
-  margin-top: var(--space-4);
-  border-top: 1px dashed var(--color-divider);
-}
-
-/* =========================================================
-   TULEVAT KILPAILUT / PELIT – VALINTAPANEELI
-   ========================================================= */
-
-/* Valitut tapahtumat */
-.selected-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.fd-formRow{
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-3);
-
-  padding: 0.6rem 0.9rem;
-  border-radius: var(--radius-lg);
-  background: rgba(148, 163, 184, 0.08);
-  border: 1px solid rgba(148, 163, 184, 0.32);
-
-  font-size: var(--text-sm);
-  transition:
-    background-color var(--duration-fast) var(--easing-standard),
-    border-color var(--duration-fast) var(--easing-standard),
-    transform var(--duration-fast) var(--easing-emphasized),
-    box-shadow var(--duration-fast) var(--easing-standard);
+  min-width: 0;
 }
 
-.selected-card + .selected-card {
-  margin: 0.45rem;
+@media (min-width: 760px){
+  .fd-formRow{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-.selected-card:hover {
-  background: rgba(14, 165, 164, 0.08);
-  border-color: var(--color-primary);
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
-  transform: translateY(-1px);
+.fd-formCol{
+  display: grid;
+  gap: 8px;
+  min-width: 0;
 }
 
-.selected-card .title {
-  font-weight: 600;
-  color: var(--color-text-strong);
-}
-
-.selected-card .meta {
-  margin-top: 0.1rem;
-  font-size: var(--text-xs);
+.fd-label{
   color: var(--color-text-muted);
+  font-size: var(--text-sm, .925rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-/* Poista-painike valituissa */
-.selected-card button {
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(255, 255, 255, 0.7);
-  padding: 0.25rem 0.7rem;
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background-color var(--duration-fast) var(--easing-standard),
-    border-color var(--duration-fast) var(--easing-standard),
-    color var(--duration-fast) var(--easing-standard),
-    transform var(--duration-fast) var(--easing-emphasized);
-}
-
-.selected-card button:hover {
-  background: var(--color-danger);
-  border-color: var(--color-danger);
-  color: var(--color-white);
-  transform: translateY(-1px);
-}
-
-/* ----------------------------- Valintapaneeli ----------------------------- */
-
-.panel {
-  margin-top: var(--space-3);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-alt);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-
-
-}
-
-/* Hakukenttä */
-.panel .search {
+/* unify .fd-input and .input */
+.fd-input,
+.input{
   width: 100%;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-input-border);
-  background: var(--color-input-bg);
-  padding: 0.55rem 0.8rem;
-  font-size: var(--text-sm);
+  min-width: 0;
+
+  padding: 12px 12px;
+  border-radius: var(--radius-xl, 18px);
+
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px solid var(--fd-border);
+
   color: var(--color-text);
   outline: none;
-  transition:
-    border-color var(--duration-fast) var(--easing-standard),
-    box-shadow var(--duration-fast) var(--easing-standard),
-    background-color var(--duration-fast) var(--easing-standard);
+
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-surface) 55%, transparent) inset;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
 }
 
-.panel .search::placeholder {
-  color: var(--color-text-faint);
+.fd-input::placeholder,
+.input::placeholder{
+  color: color-mix(in srgb, var(--color-text-muted) 85%, transparent);
 }
 
-.panel .search:hover {
-  border-color: var(--color-input-border-hover);
+.fd-input:hover,
+.input:hover{
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  border-color: color-mix(in srgb, var(--color-border) 70%, transparent);
 }
 
-.panel .search:focus {
-  border-color: var(--color-input-border-focus);
-  box-shadow:
-    0 0 0 1px var(--color-input-border-focus),
-    0 0 0 3px var(--focus-ring);
+.fd-input:focus,
+.input:focus{
+  border-color: color-mix(in srgb, var(--gradient-brand) 38%, var(--color-border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--gradient-brand) 16%, transparent);
 }
 
-/* Lista scrollaa, header pysyy */
-.panel .group {
-  padding-top: 0.35rem;
+/* textareas */
+textarea.fd-input,
+textarea.input{
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.55;
 }
 
-.panel .group + .group {
-  margin-top: 0.4rem;
-  padding-top: 0.4rem;
-  border-top: 1px dashed var(--color-divider);
-}
-
-/* Päivämääräryhmän otsikko */
-.group-date {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  margin-bottom: 0.25rem;
-}
-
-/* Yksittäinen tapahtumakortti */
-.event-card {
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: rgba(148, 163, 184, 0.04);
-  padding: 0.6rem 0.8rem;
-  cursor: pointer;
-  transition:
-    border-color var(--duration-fast) var(--easing-standard),
-    background-color var(--duration-fast) var(--easing-standard),
-    transform var(--duration-fast) var(--easing-emphasized),
-    box-shadow var(--duration-fast) var(--easing-standard);
-}
-
-.event-card:hover {
-  border-color: var(--color-primary);
-  background: rgba(14, 165, 164, 0.08);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.10);
-  transform: translateY(-1px);
-}
-
-/* Valittu tapahtuma */
-.event-card.picked {
-  border-color: var(--color-primary);
-  background: rgba(14, 165, 164, 0.12);
-}
-
-/* Tapahtuman sisältö */
-.event-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* ---------- Evaluation: make it look like a matrix (not random pills) ---------- */
+.fd-row{
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-3);
+  min-width: 0;
 }
 
-.event-head .title {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-text-strong);
-}
 
-.event-head .meta {
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-}
 
-/* “Valittu / Ei valittu” tagi oikealla */
-.event-head > .meta {
-  padding: 0.1rem 0.55rem;
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  background: rgba(148, 163, 184, 0.12);
-  white-space: nowrap;
-}
-
-.event-card.picked .event-head > .meta {
-  border-color: var(--color-primary);
-  color: var(--color-primary-active);
-  background: rgba(14, 165, 164, 0.18);
-}
-
-/* =========================================================
-   TULOKSET – DYNAMIISET RIVIT
-   ========================================================= */
-
-.reList {
-  display: flex;
-  flex-direction: column;
+.fd-areas{
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-2);
 }
 
-/* Yksittäinen ottelurivi */
-.reCard {
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  background: rgba(148, 163, 184, 0.06);
-  padding: var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+@media (min-width: 760px){
+  .fd-areas{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1100px){
+  .fd-areas{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-/* 2-sarakkeinen grid (päivä/vastustaja, koti/vieras/rooli, jne.) */
-.reGrid2 {
+.fd-area{
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: 1fr auto;
+  align-items: center;
   gap: var(--space-3);
+
+  padding: 10px 12px;
+  border-radius: var(--radius-xl, 18px);
+
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px solid var(--fd-border-soft);
 }
 
-/* Yksittäinen kenttä */
-.reField {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.fd-area-label{
+  font-weight: 780;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
 }
 
-.reLabel {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-  color: var(--color-text-muted);
+.fd-area .input{
+  padding: 10px 10px;
 }
 
-/* Tekstikentät & select tulosrivillä */
-.reInput,
-.reSelect {
-  width: 100%;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-input-border);
-  background: var(--color-input-bg);
-  padding: 0.4rem 0.6rem;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  outline: none;
-  transition:
-    border-color var(--duration-fast) var(--easing-standard),
-    box-shadow var(--duration-fast) var(--easing-standard),
-    background-color var(--duration-fast) var(--easing-standard);
-}
-
-.reInput:hover,
-.reSelect:hover {
-  border-color: var(--color-input-border-hover);
-}
-
-.reInput:focus,
-.reSelect:focus {
-  border-color: var(--color-input-border-focus);
-  box-shadow:
-    0 0 0 1px var(--color-input-border-focus),
-    0 0 0 3px var(--focus-ring);
-}
-
-/* Rivi- ja poista-nappi */
-.reActions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--space-2);
-}
-
-/* Ghost-tyylinen nappi: “Poista rivi” */
-.reBtnGhost {
-  border-radius: var(--radius-full);
-  padding: 0.35rem 0.85rem;
-  font-size: var(--text-xs);
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition:
-    background-color var(--duration-fast) var(--easing-standard),
-    border-color var(--duration-fast) var(--easing-standard),
-    color var(--duration-fast) var(--easing-standard),
-    transform var(--duration-fast) var(--easing-emphasized);
-}
-
-.reBtnGhost:hover {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-  transform: translateY(-1px);
-}
-
-/* ------------------------ Varia / responsiivisuus ------------------------ */
-
-@media (max-width: 640px) {
-  .appMain {
-    padding: var(--space-3);
-  }
-
-  .fd-header {
-    top: var(--space-2);
-    padding-bottom: var(--space-2);
-  }
-
-  .fd-head {
-    padding: var(--space-3);
-    border-radius: var(--radius-lg);
-  }
-
-  .fd-headTitle {
-    padding-left: 0.7rem;
-  }
-
-  .fd-title {
-    font-size: 1.55rem;
-  }
-
-  .fd-toolbar {
-    padding-inline: var(--space-3);
-  }
-
-  .panel {
-    max-height: none;
-  }
-
-  .reCard {
-    padding: var(--space-2);
-  }
-
-  .reGrid2 {
-    gap: var(--space-2);
-  }
-
-  .fd-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-}
-
-@media (min-width: 1024px) {
-  .appMain {
-    padding-top: var(--space-6);
-    padding-bottom: var(--space-6);
-  }
-
-  .fd-page {
-    gap: var(--space-6);
-  }
-}
-
-
-/* ------------------------ Tapaamiset (kansion pohjalla) ------------------------ */
-
-.meetings-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.meetings-form,
-.meeting-edit {
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-3);
-  background: var(--color-surface);
-}
-
-.meetings-error {
-  padding: var(--space-3);
-  border: 1px solid var(--color-danger, #e11d48);
-  border-radius: var(--radius-3);
-  background: color-mix(in oklab, var(--color-danger, #e11d48) 10%, transparent);
-}
-
-.meetings-empty {
-  padding: var(--space-4);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-3);
-  color: var(--color-muted);
-}
-
-.meetings-list {
-  display: grid;
-  gap: var(--space-3);
-}
-
-.meeting-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-3);
-  background: var(--color-surface);
+/* ---------- Upcoming block: same card system, with inner layout ---------- */
+.upcoming{
+  border-radius: var(--fd-radius);
+  border: 1px solid var(--fd-border);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
   overflow: hidden;
 }
 
-.meeting-card__summary {
-  cursor: pointer;
-  list-style: none;
-  padding: var(--space-4);
-  display: grid;
-  gap: var(--space-1);
+.upcoming-selected{
+  padding: 14px;
+  margin: 0;
+  border-bottom: 1px solid var(--fd-border-soft);
 }
 
-.meeting-card__summary::-webkit-details-marker {
-  display: none;
-}
-
-.meeting-card__title {
-  font-weight: 650;
-}
-
-.meeting-card__meta {
-  color: var(--color-muted);
-  font-size: 0.95rem;
-}
-
-.meeting-card__body {
-  padding: var(--space-4);
-  border-top: 1px solid var(--color-border);
-  display: grid;
-  gap: var(--space-4);
-}
-
-.meeting-block {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.meeting-block__label {
-  font-size: 0.9rem;
-  color: var(--color-muted);
-  font-weight: 600;
-}
-
-.meeting-block__text {
-  white-space: pre-wrap;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-}
-
-.form-field {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.form-field label {
-  font-size: 0.9rem;
-  color: var(--color-muted);
-  font-weight: 600;
-}
-
-.form-field input,
-.form-field textarea {
-  width: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-3);
-  padding: var(--space-3);
-  background: var(--color-bg);
-  color: var(--color-text);
-}
-
-.meeting-editWrap {
-  display: grid;
-  gap: var(--space-3);
-}
-
-.meeting-actions {
+.upcoming-toolbar{
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
 }
 
-.meeting-delete button {
-  width: 100%;
+/* ---------- List cards (meetings/items) ---------- */
+.fd-stack{ display: grid; gap: var(--space-4); min-width: 0; }
+.fd-list{ display: grid; gap: var(--space-3); min-width: 0; }
+
+.fd-card{
+  background: var(--fd-surface-2);
+  padding: var(--fd-pad);
 }
 
-@media (max-width: 640px) {
-  .form-row {
-    grid-template-columns: 1fr;
+.fd-item{ display: grid; gap: var(--space-3); }
+.fd-itemHead{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.fd-strong{
+  font-weight: 850;
+  letter-spacing: -0.01em;
+}
+
+.fd-muted,
+.muted{
+  color: var(--color-text-muted);
+  font-size: var(--text-sm, .925rem);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.fd-pre{
+  padding: 12px;
+  border-radius: var(--radius-xl, 18px);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px solid var(--fd-border-soft);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+}
+
+/* ---------- Buttons: 1 system, 3 variants ---------- */
+.btn,
+.fd-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  padding: 11px 14px;
+  border-radius: var(--radius-xl, 18px);
+
+  border: 1px solid var(--fd-border);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 780;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.btn:hover,
+.fd-btn:hover{
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--color-surface) 98%, transparent);
+  border-color: color-mix(in srgb, var(--gradient-brand) 22%, var(--color-border));
+}
+
+.btn:active,
+.fd-btn:active{ transform: translateY(0); }
+
+.btn:focus-visible,
+.fd-btn:focus-visible{
+  outline: 3px solid color-mix(in srgb, var(--gradient-brand) 40%, transparent);
+  outline-offset: 2px;
+}
+
+/* Primary */
+.btn--primary{
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--gradient-brand) 55%, var(--color-surface)),
+      color-mix(in srgb, var(--gradient-brand) 40%, var(--color-surface))
+    );
+  border-color: color-mix(in srgb, var(--gradient-brand) 35%, var(--color-border));
+}
+
+/* Secondary */
+.btn--secondary{
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+}
+
+/* Ghost (toolbar) */
+.btn--ghost{
+  background: transparent;
+  border-color: var(--fd-border-soft);
+}
+
+.btn--ghost:hover{
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+}
+
+/* Disabled: make it look intentional, not broken */
+.btn[disabled],
+.fd-btn[disabled],
+button[disabled].btn,
+button[disabled].fd-btn{
+  opacity: .58;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .btn, .fd-btn, .fd-input, .input{ transition: none !important; }
+}
+
+/* ---------- Long text safety ---------- */
+.fd-title,
+.fd-meta,
+.fd-sectionTitle,
+.fd-pre,
+.fd-muted,
+.muted{
+  overflow-wrap: anywhere;
+}
+
+
+/* Make fd-formRow 2-col ONLY when it actually has 2 columns */
+.fd-formRow{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Desktop: only rows that contain 2 .fd-formCol become 2 columns */
+@media (min-width: 760px){
+  .fd-formRow:has(> .fd-formCol:nth-child(2)){
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Single-field rows should span full width even if other rules try to limit */
+@media (min-width: 760px){
+  .fd-formRow > .fd-formCol:only-child{
+    grid-column: 1 / -1;
+  }
+}
+
+/* Button row */
+.fd-formRow > button.fd-btn{
+  justify-self: start;
+}
+
+/* Optional: if you want Save button full width on mobile */
+@media (max-width: 520px){
+  .fd-formRow > button.fd-btn{
+    width: 100%;
   }
 }

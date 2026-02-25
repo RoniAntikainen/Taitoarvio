@@ -1,34 +1,55 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-REM Projektin sijainti = tämän .bat tiedoston kansio
+REM Projektin kansio
 set "SRC=%~dp0"
 set "SRC=%SRC:~0,-1%"
 
-REM Export-kansio
-set "DST=%SRC%_export"
+REM Timestamp
+for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyy-MM-dd_HH-mm-ss"') do set TS=%%i
 
-REM Poista vanha export
-if exist "%DST%" rmdir /s /q "%DST%"
-
-REM Luo export-kansio
-mkdir "%DST%"
+set "DST=%SRC%_export_%TS%"
+set "ZIP=%SRC%\project_%TS%.zip"
 
 echo.
-echo === Kopioidaan projekti ilman turhia kansioita ===
+echo === Luodaan export kansio ===
+echo.
+
+mkdir "%DST%" || (
+  echo Export-kansion luonti epäonnistui.
+  pause
+  exit /b 1
+)
+
+echo.
+echo === Kopioidaan projekti ===
 echo.
 
 robocopy "%SRC%" "%DST%" /E ^
   /XD node_modules .next dist build .turbo .cache coverage .git ^
-  /XF .env .env.* *.log *.db *.sqlite tsconfig.tsbuildinfo
+  /XF .env *.log *.db *.sqlite tsconfig.tsbuildinfo project_*.zip
+
+if %ERRORLEVEL% GEQ 8 (
+  echo Kopioinnissa tapahtui virhe.
+  pause
+  exit /b 1
+)
 
 echo.
 echo === Tehdään ZIP ===
 echo.
 
-powershell -Command "Compress-Archive -Path '%DST%\*' -DestinationPath '%SRC%\project.zip' -Force"
+powershell -NoProfile -Command "Compress-Archive -Path '%DST%\*' -DestinationPath '%ZIP%' -Force"
+
+if %ERRORLEVEL% NEQ 0 (
+  echo Zipin luonti epäonnistui.
+  pause
+  exit /b 1
+)
 
 echo.
 echo === VALMIS ===
-echo Zip luotu: %SRC%\project.zip
+echo Zip luotu: %ZIP%
+echo.
+
 pause

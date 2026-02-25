@@ -206,7 +206,7 @@ export default async function FolderDetailPage({
         <div className="fd-sectionHead">
           <h2 className="fd-sectionTitle">Oppilaan arviointi</h2>
           <div className="fd-sectionRight">
-            <span className="fd-subtle">1–5, “—” = arvioimaton</span>
+            <span className="fd-subtle">1-5, “—” = arvioimaton</span>
           </div>
         </div>
 

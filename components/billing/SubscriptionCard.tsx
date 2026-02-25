@@ -35,10 +35,14 @@ function statusLabel(status?: string) {
 function statusHint(sub: Sub) {
   const st = sub.status ?? "FREE";
   if (st === "TRIAL") return `Kokeilu päättyy: ${fmt(sub.trialEndsAt)}`;
-  if (st === "ACTIVE" && sub.cancelAtPeriodEnd) return `Päättyy kauden lopussa: ${fmt(sub.currentPeriodEnd)}`;
-  if (st === "ACTIVE") return `Uusitaan: ${fmt(sub.currentPeriodEnd)}`;
-  if (st === "PAST_DUE") return "Tarkista maksutapa ja suorita maksu.";
-  if (st === "CANCELED") return "Voit aktivoida tilauksen uudelleen.";
+  if (st === "ACTIVE" && sub.cancelAtPeriodEnd)
+    return `Päättyy kauden lopussa: ${fmt(sub.currentPeriodEnd)}`;
+  if (st === "ACTIVE")
+    return `Uusitaan: ${fmt(sub.currentPeriodEnd)}`;
+  if (st === "PAST_DUE")
+    return "Tarkista maksutapa ja suorita maksu.";
+  if (st === "CANCELED")
+    return "Voit aktivoida tilauksen uudelleen.";
   return "FREE: 1 kansio + 10 arviointia / kansio. Päivitä PRO:hon avataksesi rajattoman käytön.";
 }
 
@@ -86,69 +90,46 @@ export default function SubscriptionCard({ sub }: { sub: Sub }) {
   };
 
   return (
-    <section
-      style={{
-        border: "1px solid rgba(0,0,0,0.12)",
-        borderRadius: 16,
-        padding: 16,
-        background: "rgba(255,255,255,0.7)",
-        backdropFilter: "blur(10px)",
-        display: "grid",
-        gap: 10,
-      }}
-    >
-      <div style={{ display: "grid", gap: 4 }}>
-        <div style={{ fontWeight: 800, fontSize: 16 }}>Tilaus</div>
-        <div style={{ opacity: 0.9 }}>
-          <b>{statusLabel(status)}</b>
-          <span style={{ marginLeft: 10, opacity: 0.75 }}>{statusHint(sub)}</span>
+    <section className="billing-card">
+      <div className="billing-card__header">
+        <div className="billing-card__title">Tilaus</div>
+
+        <div className="billing-card__status">
+          <b className="billing-card__status-label">
+            {statusLabel(status)}
+          </b>
+          <span className="billing-card__status-hint">
+            {statusHint(sub)}
+          </span>
         </div>
       </div>
 
-      {err ? (
-        <div
-          style={{
-            border: "1px solid rgba(255,0,0,0.25)",
-            background: "rgba(255,0,0,0.06)",
-            borderRadius: 12,
-            padding: "10px 12px",
-          }}
-        >
+      {err && (
+        <div className="billing-card__error">
           {err}
         </div>
-      ) : null}
+      )}
 
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <div className="billing-card__actions">
         {!pro ? (
           <button
+            className="billing-card__button billing-card__button--primary"
             onClick={onCheckout}
             disabled={loading !== null}
-            style={{
-              border: 0,
-              borderRadius: 12,
-              padding: "10px 12px",
-              cursor: loading ? "not-allowed" : "pointer",
-              fontWeight: 700,
-              opacity: loading ? 0.6 : 1,
-            }}
           >
-            {loading === "checkout" ? "Avataan checkout..." : "Päivitä PRO:hon"}
+            {loading === "checkout"
+              ? "Avataan checkout..."
+              : "Päivitä PRO:hon"}
           </button>
         ) : (
           <button
+            className="billing-card__button billing-card__button--secondary"
             onClick={onPortal}
             disabled={loading !== null}
-            style={{
-              border: "1px solid rgba(0,0,0,0.12)",
-              borderRadius: 12,
-              padding: "10px 12px",
-              cursor: loading ? "not-allowed" : "pointer",
-              fontWeight: 700,
-              background: "transparent",
-              opacity: loading ? 0.6 : 1,
-            }}
           >
-            {loading === "portal" ? "Avataan portaali..." : "Hallitse tilausta"}
+            {loading === "portal"
+              ? "Avataan portaali..."
+              : "Hallitse tilausta"}
           </button>
         )}
       </div>

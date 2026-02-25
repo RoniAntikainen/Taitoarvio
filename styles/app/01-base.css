@@ -300,3 +300,12 @@ body[data-scope="app"] .bgVideo::after {
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
 }
+
+
+:root {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html {
+  font-family: var(--font-sans);
+}

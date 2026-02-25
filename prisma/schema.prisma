@@ -23,8 +23,32 @@ model User {
 
   subscription Subscription?
 
+  // ✅ Settings 1–1
+  settings UserSettings?
+
   role                  String    @default("user")
   onboardingCompletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserSettings {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Sovelluksen oletukset
+  defaultSportId String  @default("dance") // id viittaa SPORT_CONFIG:iin
+  locale         String  @default("fi")
+  timeZone       String  @default("Europe/Helsinki")
+  weekStartsOn   Int     @default(1) // 1=Mon, 0=Sun (tai 0–6)
+  dateFormat     String  @default("yyyy-MM-dd")
+  theme          String  @default("system") // system | light | dark
+  reduceMotion   Boolean @default(false)
+
+  // Ilmoitukset
+  notificationsEmail Boolean @default(true)
+  notificationsInApp Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

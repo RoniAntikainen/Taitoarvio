@@ -36,12 +36,10 @@
   justify-self: center;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-5);
 
   padding: var(--space-1);
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--color-surface-alt) 58%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-divider) 65%, transparent);
 }
 
 .appTopbar__nav :where(a, button) {
