@@ -1,10 +1,17 @@
 import Link from "next/link";
-import { getFolderView } from "@/app/actions/folders";
+import { addMemberFromForm, getFolderView, removeMember } from "@/app/actions/folders";
 import {
   getFolderProfile,
   saveFolderProfileFromForm,
 } from "@/app/actions/folder-sections";
 import "./folder-settings.css";
+
+function roleLabel(role: string) {
+  if (role === "owner") return "Omistaja";
+  if (role === "editor") return "Valmentaja";
+  if (role === "student") return "Oppilas";
+  return "Katsoja";
+}
 
 export default async function FolderSettingsPage({
   params,
@@ -15,7 +22,8 @@ export default async function FolderSettingsPage({
   const { folder, role } = await getFolderView(folderId);
   const profile = await getFolderProfile(folderId);
 
-  const canEdit = role !== "viewer";
+  const canEdit = role !== "viewer" && role !== "student";
+  const canManageMembers = role === "owner";
 
   return (
     <div className="fs-page">
@@ -71,6 +79,52 @@ export default async function FolderSettingsPage({
             <div className="fs-muted">Sinulla on vain lukuoikeus.</div>
           )}
         </form>
+      </section>
+
+      <section className="fs-card">
+        <h2>Ryhmäjäsenet</h2>
+        <p className="fs-help">
+          Lisää valmentajia, katsojia ja oppilaita tähän kansioon. Oppilas-roolilla käyttäjä näkee sisällöt ja voi kommentoida.
+        </p>
+
+        <div className="fs-members">
+          {folder.members.map((member) => (
+            <article key={member.userEmail} className="fs-memberRow">
+              <div>
+                <div className="fs-memberEmail">{member.userEmail}</div>
+                <div className="fs-memberRole">{roleLabel(member.role)}</div>
+              </div>
+
+              {canManageMembers && member.role !== "owner" ? (
+                <form action={removeMember.bind(null, folderId, member.userEmail)}>
+                  <button className="fs-removeBtn" type="submit">Poista</button>
+                </form>
+              ) : null}
+            </article>
+          ))}
+        </div>
+
+        {canManageMembers ? (
+          <form className="fs-form" action={addMemberFromForm.bind(null, folderId)}>
+            <div className="fs-field">
+              <label className="fs-label">Sähköposti</label>
+              <input name="email" className="input" placeholder="nimi@esimerkki.fi" required />
+            </div>
+
+            <div className="fs-field">
+              <label className="fs-label">Rooli</label>
+              <select name="role" className="input" defaultValue="viewer">
+                <option value="editor">Valmentaja (muokkaus)</option>
+                <option value="viewer">Katsoja (vain luku)</option>
+                <option value="student">Oppilas (luku + kommentointi)</option>
+              </select>
+            </div>
+
+            <button type="submit" className="btn">Lisää jäsen</button>
+          </form>
+        ) : (
+          <div className="fs-muted">Vain omistaja voi hallita jäseniä.</div>
+        )}
       </section>
     </div>
   );

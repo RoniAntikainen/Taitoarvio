@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-type FolderRole = "owner" | "editor" | "viewer";
+type FolderRole = "owner" | "editor" | "viewer" | "student";
 type SectionType = "profile" | "plan" | "upcoming" | "results";
 
 function normalizeEmail(v: string) {
@@ -32,11 +32,13 @@ async function getFolderRole(folderId: string, email: string): Promise<FolderRol
   });
   if (!member) return null;
 
-  return member.role === "editor" ? "editor" : "viewer";
+  if (member.role === "editor") return "editor";
+  if (member.role === "student") return "student";
+  return "viewer";
 }
 
 function assertMinRole(role: FolderRole, min: "viewer" | "editor" | "owner") {
-  const rank: Record<FolderRole, number> = { viewer: 1, editor: 2, owner: 3 };
+  const rank: Record<FolderRole, number> = { viewer: 1, student: 1, editor: 2, owner: 3 };
   const minRank: Record<"viewer" | "editor" | "owner", number> = { viewer: 1, editor: 2, owner: 3 };
   if (rank[role] < minRank[min]) throw new Error("No access");
 }

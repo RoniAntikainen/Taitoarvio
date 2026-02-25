@@ -15,6 +15,7 @@ import { createFolderEvaluationFromForm } from "@/app/actions/folder-evaluations
 import ResultsEditor from "@/components/folders/ResultsEditor";
 import UpcomingPicker from "@/components/folders/UpcomingPicker";
 import FolderAnalyticsCards from "@/components/folders/FolderAnalyticsCards";
+import { createFolderCommentFromForm, listFolderComments } from "@/app/actions/folder-items";
 
 // ✅ lisätty (älä muuta nimeä)
 import MeetingsSection from "../[id]/MeetingsSection";
@@ -54,7 +55,8 @@ export default async function FolderDetailPage({
   const results = await getSection(folderId, "results");
 
   const evaluations = await listFolderEvaluations(folderId);
-  const canEdit = role !== "viewer";
+  const comments = await listFolderComments(folderId);
+  const canEdit = role === "owner" || role === "editor";
 
   return (
     <div className="fd-page">
@@ -116,7 +118,9 @@ export default async function FolderDetailPage({
         <div className="fd-toolbarHint">
           {canEdit
             ? "Voit muokata tämän kansion tietoja."
-            : "Sinulla on vain lukuoikeus."}
+            : role === "student"
+              ? "Oppilasrooli: voit selata sisältöjä ja kommentoida."
+              : "Sinulla on vain lukuoikeus."}
         </div>
       </section>
 
@@ -300,6 +304,50 @@ export default async function FolderDetailPage({
                 )}
 
                 {e.data?.notes && <div className="fd-pre">{e.data.notes}</div>}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* COMMENTS */}
+      <section className="fd-section">
+        <div className="fd-sectionHead">
+          <h2 className="fd-sectionTitle">Keskustelu</h2>
+          <div className="fd-sectionRight">
+            <span className="fd-subtle">Kommentoi ryhmän sisältöä ja seuraa päivityksiä</span>
+          </div>
+        </div>
+
+        <form action={createFolderCommentFromForm.bind(null, folderId)} className="fd-form">
+          <textarea
+            name="comment"
+            rows={3}
+            className="input"
+            placeholder="Kirjoita kommentti kansioon..."
+          />
+          <div className="fd-formActions">
+            <button className="btn btn--primary" type="submit">Lähetä kommentti</button>
+          </div>
+        </form>
+
+        <div className="fd-divider" />
+
+        {comments.length === 0 ? (
+          <div className="fd-muted">Ei kommentteja vielä.</div>
+        ) : (
+          <div className="fd-list">
+            {comments.map((c) => (
+              <article key={c.id} className="fd-card fd-item">
+                <div className="fd-itemHead">
+                  <div className="fd-itemTitle">
+                    <div className="fd-strong">{c.createdBy || "Tuntematon"}</div>
+                    <div className="fd-muted">
+                      {new Date(c.createdAt).toLocaleString("fi-FI")}
+                    </div>
+                  </div>
+                </div>
+                <div className="fd-pre">{c.content}</div>
               </article>
             ))}
           </div>
